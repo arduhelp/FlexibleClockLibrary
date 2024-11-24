@@ -1,0 +1,285 @@
+#include "FlexibleClockLibrary.h"
+#include <Arduino.h>
+#include <U8g2lib.h>
+
+ const unsigned char FlexibleClockLibrary::_err_bitmap_err [] PROGMEM = {
+    0x00, 0x00, 0x10, 0x28, 0x6c, 0x7c, 0xee, 0xfe
+};
+
+const unsigned char FlexibleClockLibrary::_err_bitmap_noerr [] PROGMEM = {
+    0x00, 0x00, 0x00, 0x80, 0x40, 0x22, 0x14, 0x08
+};
+
+const unsigned char FlexibleClockLibrary::_err_bitmap_qestoin [] PROGMEM = {
+    0x00, 0x00, 0x7f, 0x73, 0x6f, 0x67, 0x7f, 0x77
+};
+const unsigned char FlexibleClockLibrary::_err_bitmap_loading [] PROGMEM = {
+	0x00, 0x10, 0x54, 0x00, 0xc6, 0x00, 0x54, 0x10
+};
+// 'def_unknown', 8x8px
+const unsigned char FlexibleClockLibrary::def_bitmap_def_unknown [] PROGMEM = {
+	0x3e, 0x4a, 0x52, 0x62, 0x42, 0x42, 0x42, 0x7e
+};
+// 'ap', 8x8px
+const unsigned char FlexibleClockLibrary::wifi_bitmap_ap [] PROGMEM = {
+	0x00, 0x00, 0x00, 0x92, 0x00, 0x38, 0x44, 0x10
+};
+// 'nothing', 8x8px
+const unsigned char FlexibleClockLibrary::wifi_bitmap_nothing [] PROGMEM = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10
+};
+// 'wifi', 8x8px
+const unsigned char FlexibleClockLibrary::wifi_bitmap_wifi [] PROGMEM = {
+	 0x00, 0x00, 0x00, 0x3e, 0x41, 0x1c, 0x22, 0x08
+};
+const unsigned char FlexibleClockLibrary::wifi_bitmap_disabled [] PROGMEM = {
+	0x00, 0x00, 0x01, 0x3a, 0x45, 0x08, 0x12, 0x28
+};
+// 'bluetooth', 8x8px
+const unsigned char FlexibleClockLibrary::bluetooth_bitmap_bluetooth [] PROGMEM = {
+	0x30, 0x52, 0x54, 0x38, 0x38, 0x54, 0x52, 0x30
+};
+const unsigned char FlexibleClockLibrary::remote_bitmap_remote [] PROGMEM = {
+	0x00, 0x00, 0x00, 0x7e, 0x42, 0x52, 0x4a, 0x42
+};
+
+FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OKsig, uint8_t analogButton,
+                                           const char* ssidConfig, const char* passwordConfig,
+                                           uint8_t IR_tx, uint8_t IR_rx, uint8_t mHz_tx, uint8_t vibroPin)
+    : _disp(disp), _OKpin(OKpin), _OKsig(OKsig), _analogButton(analogButton), _ssidConfig(ssidConfig), 
+      _passwordConfig(passwordConfig), _IR_tx(IR_tx), _IR_rx(IR_rx), 
+      _mHz_tx(mHz_tx), _vibroPin(vibroPin) {
+    // Ініціалізація змінних класу
+}
+ 
+
+const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autoflipper", "Option2", "Option3","Option4", "Exit", "" ,"" }; // Ініціалізація статичного масиву
+const char* autofliper = "1";
+
+
+// begin
+void FlexibleClockLibrary::begin() {
+    pinMode(_OKpin, INPUT_PULLUP); // OK pin
+    // attachInterrupt(digitalPinToInterrupt(_OKpin), handleOkInterrupt, FALLING);
+    Serial.begin(115200);
+    Serial.println("loading... serial");
+    _disp.begin();
+    Serial.println("loading... display");
+    clearDisp();
+    _disp.setFont(u8g2_font_t0_11_tr);
+    uint8_t taskbar_show = 1;
+     delay(200);
+    if(digitalRead(_OKpin) == HIGH) {
+        _BOOTSET();
+    }
+    wifiType = 3;
+
+     //_disp.drawStr(0, 35, "FlexibleClockLib"); 
+     //delay(2000);
+}
+
+// err
+void FlexibleClockLibrary::getErr(const char* errMsg) {
+    clearDisp();
+    _disp.clearBuffer(); // clear the internal memory
+    _disp.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
+    _disp.drawStr(0, 10, "Err! please reboot."); // write something to the internal memory
+    Serial.println("Err! please reboot.");
+    _disp.drawStr(0, 20, errMsg); // display error message
+    Serial.println(errMsg);
+    _disp.sendBuffer(); // transfer internal memory to the display
+    delay(5000);
+}
+
+void FlexibleClockLibrary::clearDisp() {
+    _disp.clearBuffer(); // Очищаємо буфер дисплея
+    _disp.sendBuffer();  // Виводимо змінений (порожній) буфер на екран
+    return;
+}
+
+// BOOTSETTINGS
+void FlexibleClockLibrary::_BOOTSET() { clearDisp();
+ for (int loopboot = 0; loopboot < 30000; loopboot++) { 
+   // clearDisp();
+    
+    Serial.println("BOOTSET!");
+    Serial.println("OK pin" + digitalRead(_OKpin));
+
+    int lineHeight = 11;
+    int y = 11;  // Fixed variable for drawing the menu
+    char yP = _BOOTSETPointer*11;
+    //int _BOOTSETPointer = 1;
+
+delay(1000);
+
+
+    clearDisp();
+    _disp.setFont(u8g2_font_t0_11_tr);
+    for (int i = 0; i < 7; i++) { // Use 3 items instead of 5
+        _disp.drawStr(10, y, _BOOTSETItems[i]);  // Виводимо кожен пункт меню
+        y += lineHeight;  // Переходимо до наступного рядка
+         _disp.drawStr(0, yP, ">"); 
+    }
+   if(_BOOTSETPointer == 6){_BOOTSETPointer = 0;}
+
+    _disp.drawStr(80, 11, autofliper);
+    _disp.sendBuffer();  // Оновлюємо екран
+    _BOOTSETPointer++;
+   // delay(2000);
+ }
+}
+
+void FlexibleClockLibrary::drawLines(const char* lineText) {
+    //gpt code
+   // clearDisp(); // Очищаємо екран перед виведенням
+
+    _disp.setFont(u8g2_font_ncenB08_tr); // Встановлюємо шрифт
+    int x = 10; // Початкова координата X
+    int y = 10; // Початкова координата Y
+    int lineHeight = 12; // Висота рядка
+
+    // Виведення тексту по рядках
+    String line;
+    for (int i = 0; lineText[i] != '\0'; i++) { // Use lineText instead of undefined 'text'
+        if (lineText[i] == '\n') { // Якщо зустріли символ нового рядка
+            _disp.drawStr(x, y, line.c_str()); // Виводимо рядок
+            y += lineHeight; // Переходимо до наступного рядка
+            line = ""; // Очищаємо рядок
+        } else {
+            line += lineText[i]; // Додаємо символ до рядка
+        }
+    }
+
+    // Виводимо останній рядок, якщо він є
+    if (line.length() > 0) {
+        _disp.drawStr(x, y, line.c_str());
+    }
+
+    _disp.sendBuffer(); // Оновлюємо екран
+    //gpt code end
+}
+
+
+
+
+
+
+
+
+// taskbar----------------------------------------
+void FlexibleClockLibrary::taskbar_begin() {
+  // taskbar_draw();
+}
+
+
+
+
+//---------------------------------
+//----------taskbar_draw-----------
+//---------------------------------
+ int currentHours;
+ int currentMinutes;
+void FlexibleClockLibrary::taskbar_draw(int taskbar_y) {
+    char timeBuffer[6];  // Буфер для збереження відформатованого часу
+//    Serial.println(taskbar_show);
+    
+    if (taskbar_show == 1) {
+        _disp.clearBuffer();            // Очищення буфера
+        _disp.setFont(u8g2_font_6x10_tf); // Вибір шрифту
+        sprintf(timeBuffer, "%02d:%02d", currentHours, currentMinutes); // Форматуємо час у вигляді "HH:MM"
+
+        // Виводимо на дисплей
+        _disp.drawStr(0, taskbar_y, timeBuffer);  // Виводимо час
+        if(errType == 0) { _disp.drawXBMP(30, taskbar_y - 8, 8, 8, FlexibleClockLibrary::_err_bitmap_noerr); 
+        }else if(errType == 1) { _disp.drawXBMP(30, taskbar_y - 8, 8, 8, FlexibleClockLibrary::_err_bitmap_err); 
+        }else if(errType == 2) { _disp.drawXBMP(30, taskbar_y - 8, 8, 8, FlexibleClockLibrary::_err_bitmap_qestoin); 
+        }else if(errType == 3) { _disp.drawXBMP(30, taskbar_y - 8, 8, 8, FlexibleClockLibrary::_err_bitmap_loading); 
+        }else{_disp.drawXBMP(30, taskbar_y - 8, 8, 8, FlexibleClockLibrary::def_bitmap_def_unknown);}
+        //wifi
+        if(wifiType == 0) { _disp.drawXBMP(70, taskbar_y - 8, 8, 8, FlexibleClockLibrary::wifi_bitmap_nothing); 
+        }else if(wifiType == 1) { _disp.drawXBMP(70, taskbar_y - 8, 8, 8, FlexibleClockLibrary::wifi_bitmap_wifi); 
+        }else if(wifiType == 2) { _disp.drawXBMP(70, taskbar_y - 8, 8, 8, FlexibleClockLibrary::wifi_bitmap_ap); 
+        }else if(wifiType == 3 && WiFi.status() != WL_CONNECTED) { _disp.drawXBMP(70, taskbar_y - 8, 8, 8, FlexibleClockLibrary::wifi_bitmap_disabled); 
+        }else{_disp.drawXBMP(70, taskbar_y - 8, 8, 8, FlexibleClockLibrary::def_bitmap_def_unknown);}
+        //bluetooth
+        if(bluetoothType == 0) { _disp.drawXBMP(80, taskbar_y - 8, 8, 8, FlexibleClockLibrary::wifi_bitmap_nothing); 
+        }else if(bluetoothType == 1) { _disp.drawXBMP(80, taskbar_y - 8, 8, 8, FlexibleClockLibrary::bluetooth_bitmap_bluetooth); 
+        }else{_disp.drawXBMP(80, taskbar_y - 8, 8, 8, FlexibleClockLibrary::def_bitmap_def_unknown);}
+        //remote
+        if(remoteType == 0) { _disp.drawXBMP(90, taskbar_y - 8, 8, 8, FlexibleClockLibrary::wifi_bitmap_nothing); 
+        }else if(remoteType == 1) { _disp.drawXBMP(90, taskbar_y - 8, 8, 8, FlexibleClockLibrary::remote_bitmap_remote); 
+        }else{_disp.drawXBMP(90, taskbar_y - 8, 8, 8, FlexibleClockLibrary::def_bitmap_def_unknown);}
+         
+        _disp.sendBuffer();     // Відправляємо буфер на дисплей
+    }
+}
+
+
+void FlexibleClockLibrary::drawBitmape(const unsigned char* bitmape) {
+    _disp.drawXBMP(0, 0, 8, 8, bitmape);  // Малюємо зображення
+    _disp.sendBuffer();    // Відправляємо буфер на дисплей
+}
+
+// wifi----------------------------------------
+void FlexibleClockLibrary::wifi_connect(const char* WIFI_SSID1, const char* WIFI_PASS1) {
+    int attemptCounter = 0;
+    
+    WiFi.begin(WIFI_SSID1, WIFI_PASS1);
+  while (WiFi.status() != WL_CONNECTED && attemptCounter < 30) { taskbar_draw(8);
+    delay(500);
+    Serial.print(".");
+    attemptCounter++;
+    errType = 3;
+     if (digitalRead(_OKpin) == _OKsig) {
+        errType = 2;
+        taskbar_draw(8);
+      delay(1000); // Затримка для запобігання повторенню натискань
+      if (digitalRead(_OKpin) == _OKsig) { // Якщо кнопку ще тримають, вийти з циклу
+       taskbar_draw(8); }}
+  }
+  attemptCounter = 0;
+  if(WiFi.status() == WL_CONNECTED){
+   Serial.println("Connected");
+  Serial.println(WiFi.localIP());
+  errType = 0;
+  wifiType = 1;
+  taskbar_draw(8); 
+  }else{Serial.println("no connected");}
+  
+  
+
+}
+
+void FlexibleClockLibrary::wifi_ap() {
+    // WiFi Access Point logic
+}
+
+void FlexibleClockLibrary::wifi_scan() {
+    // WiFi scan logic
+}
+
+void FlexibleClockLibrary::wifi_disable() {
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
+    wifiType = 0;
+}
+
+// ir----------------------------------------
+void FlexibleClockLibrary::ir_rx() {
+    // IR receive logic
+}
+
+void FlexibleClockLibrary::ir_tx() {
+    // IR transmit logic
+}
+
+// mhz----------------------------------------
+void FlexibleClockLibrary::mhz_tx() {
+    // MHz transmit logic
+}
+
+
+//---------------
+//--button-------
+//---------------
+
