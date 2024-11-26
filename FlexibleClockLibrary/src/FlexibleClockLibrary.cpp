@@ -53,8 +53,8 @@ FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OK
 }
  
 
-const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autoflipper", "Option2", "Option3","Option4", "Exit", "" ,"" }; // Ініціалізація статичного масиву
-const char* autofliper = "1";
+const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "Option2", "Option3","Option4", "Exit", "" ,"" }; // Ініціалізація статичного масиву
+const char* FlexibleClockLibrary::autofliper = "1";
 
 
 // begin
@@ -73,9 +73,13 @@ void FlexibleClockLibrary::begin() {
         _BOOTSET();
     }
     wifiType = 3;
-
-     //_disp.drawStr(0, 35, "FlexibleClockLib"); 
-     //delay(2000);
+    _disp.clearBuffer(); 
+     _disp.setFont(u8g2_font_6x10_tf);
+     _disp.drawStr(5, 62, "FlexibleClockLib"); 
+     _disp.sendBuffer();
+     delay(2000);
+     _disp.clearBuffer(); // Очищаємо буфер дисплея
+     _disp.sendBuffer();  // Виводимо змінений (порожній) буфер на екран
 }
 
 // err
@@ -97,8 +101,20 @@ void FlexibleClockLibrary::clearDisp() {
     return;
 }
 
+
+
+
+
+//-----------------------------------------------
+//-----BOOTSET-----------------------------------
+//-----------------------------------------------
+
+
 // BOOTSETTINGS
+uint8_t FlexibleClockLibrary::_BOOTSETPointer = 1;
+
 void FlexibleClockLibrary::_BOOTSET() { clearDisp();
+unsigned long lastTime = 0;
  for (int loopboot = 0; loopboot < 30000; loopboot++) { 
    // clearDisp();
     
@@ -107,27 +123,48 @@ void FlexibleClockLibrary::_BOOTSET() { clearDisp();
 
     int lineHeight = 11;
     int y = 11;  // Fixed variable for drawing the menu
-    char yP = _BOOTSETPointer*11;
-    //int _BOOTSETPointer = 1;
+    uint8_t yP = _BOOTSETPointer*11;
+//yP позиція, _BOOTSETPointer номер пункту
 
-delay(1000);
+//delay(1000);
 
+    if (millis() - lastTime >= 1000) { // Якщо пройшла 1 секунда
+    lastTime = millis(); // Оновлюємо час
+    _disp.clearBuffer();
+    _BOOTSETPointer++;
+   
+  }
 
-    clearDisp();
+ 
+// delay(200);
+
+    
+    
+    //вивід на дисплей пункти
     _disp.setFont(u8g2_font_t0_11_tr);
     for (int i = 0; i < 7; i++) { // Use 3 items instead of 5
         _disp.drawStr(10, y, _BOOTSETItems[i]);  // Виводимо кожен пункт меню
         y += lineHeight;  // Переходимо до наступного рядка
          _disp.drawStr(0, yP, ">"); 
+         _disp.drawStr(80, 11, autofliper); 
     }
    if(_BOOTSETPointer == 6){_BOOTSETPointer = 0;}
+        if(digitalRead(_OKpin) == _OKsig){
+            switch(_BOOTSETPointer){
+                case 1: if(autofliper == "1"){autofliper = "0";}else{autofliper = "1";} delay(50); break;
+                
 
-    _disp.drawStr(80, 11, autofliper);
+            }
+        }
+
+  
+    
+    
     _disp.sendBuffer();  // Оновлюємо екран
-    _BOOTSETPointer++;
    // delay(2000);
  }
 }
+
 
 void FlexibleClockLibrary::drawLines(const char* lineText) {
     //gpt code
