@@ -73,7 +73,7 @@ public:
     void drawLines(const char* lineText);
 
     // Variables
-    const char* autofliper = "1";
+    static const char* autofliper;
     const char* lineText;
     uint8_t taskbar_show = 1;
   
@@ -109,7 +109,7 @@ private:
 
     
    
-    int _BOOTSETPointer = 1;
+    static uint8_t _BOOTSETPointer;
 
     // Static Methods
     void _BOOTSET();
