@@ -53,7 +53,7 @@ FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OK
 }
  
 
-const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "Option2", "Option3","Option4", "Exit", "" ,"" }; // Ініціалізація статичного масиву
+const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "Option2", "Option3","Option4", "Exit", "info" ,"" }; // Ініціалізація статичного масиву
 const char* FlexibleClockLibrary::autofliper = "1";
 
 
@@ -114,7 +114,9 @@ void FlexibleClockLibrary::clearDisp() {
 uint8_t FlexibleClockLibrary::_BOOTSETPointer = 1;
 
 void FlexibleClockLibrary::_BOOTSET() { clearDisp();
-unsigned long lastTime = 0;
+    unsigned long lastTime = 0;
+    delay(2000);
+    _disp.setFont(u8g2_font_t0_11_tr);
  for (int loopboot = 0; loopboot < 30000; loopboot++) { 
    // clearDisp();
     
@@ -141,19 +143,20 @@ unsigned long lastTime = 0;
     
     
     //вивід на дисплей пункти
-    _disp.setFont(u8g2_font_t0_11_tr);
     for (int i = 0; i < 7; i++) { // Use 3 items instead of 5
         _disp.drawStr(10, y, _BOOTSETItems[i]);  // Виводимо кожен пункт меню
         y += lineHeight;  // Переходимо до наступного рядка
+         _disp.drawStr(0, yP - lineHeight, " ");
          _disp.drawStr(0, yP, ">"); 
          _disp.drawStr(80, 11, autofliper); 
     }
-   if(_BOOTSETPointer == 6){_BOOTSETPointer = 0;}
+   if(_BOOTSETPointer == 7){_BOOTSETPointer = 0;}
         if(digitalRead(_OKpin) == _OKsig){
             switch(_BOOTSETPointer){
                 case 1: if(autofliper == "1"){autofliper = "0";}else{autofliper = "1";} delay(50); break;
                 
-
+                case 5:  _disp.clearBuffer(); _disp.drawStr(0, 20, "please reboot");  _disp.sendBuffer(); delay(5000); break;
+                case 6:  _disp.clearBuffer(); _disp.drawStr(0, 10, "powered by"); _disp.drawStr(0, 20, "FlexibleClockLibrary"); _disp.drawStr(0, 40, "github.com/arduhelp"); _disp.drawStr(0, 50, "/FlexibleClockLibrary"); _disp.sendBuffer(); delay(20000); break;
             }
         }
 
@@ -164,6 +167,11 @@ unsigned long lastTime = 0;
    // delay(2000);
  }
 }
+
+
+//-----------------------------------------------
+//--------drawLines------------------------------
+//-----------------------------------------------
 
 
 void FlexibleClockLibrary::drawLines(const char* lineText) {
@@ -211,9 +219,9 @@ void FlexibleClockLibrary::taskbar_begin() {
 
 
 
-//---------------------------------
-//----------taskbar_draw-----------
-//---------------------------------
+//-----------------------------------------------
+//----------taskbar_draw-------------------------
+//-----------------------------------------------
  int currentHours;
  int currentMinutes;
 void FlexibleClockLibrary::taskbar_draw(int taskbar_y) {
@@ -257,7 +265,10 @@ void FlexibleClockLibrary::drawBitmape(const unsigned char* bitmape) {
     _disp.sendBuffer();    // Відправляємо буфер на дисплей
 }
 
-// wifi----------------------------------------
+
+//-----------------------------------------------
+//---------------wifi----------------------------
+//-----------------------------------------------
 void FlexibleClockLibrary::wifi_connect(const char* WIFI_SSID1, const char* WIFI_PASS1) {
     int attemptCounter = 0;
     
@@ -272,7 +283,7 @@ void FlexibleClockLibrary::wifi_connect(const char* WIFI_SSID1, const char* WIFI
         taskbar_draw(8);
       delay(1000); // Затримка для запобігання повторенню натискань
       if (digitalRead(_OKpin) == _OKsig) { // Якщо кнопку ще тримають, вийти з циклу
-       taskbar_draw(8); }}
+       break; }}
   }
   attemptCounter = 0;
   if(WiFi.status() == WL_CONNECTED){
@@ -301,7 +312,9 @@ void FlexibleClockLibrary::wifi_disable() {
     wifiType = 0;
 }
 
-// ir----------------------------------------
+//-----------------------------------------------
+//----------------ir-----------------------------
+//-----------------------------------------------
 void FlexibleClockLibrary::ir_rx() {
     // IR receive logic
 }
@@ -310,7 +323,9 @@ void FlexibleClockLibrary::ir_tx() {
     // IR transmit logic
 }
 
-// mhz----------------------------------------
+//-----------------------------------------------
+//---------------MHz-----------------------------
+//-----------------------------------------------
 void FlexibleClockLibrary::mhz_tx() {
     // MHz transmit logic
 }
