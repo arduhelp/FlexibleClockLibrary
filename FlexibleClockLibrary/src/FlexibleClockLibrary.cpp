@@ -57,7 +57,9 @@ const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "Option2", 
 const char* FlexibleClockLibrary::autofliper = "1";
 
 
-// begin
+//-----------------------------------------------
+//-------------begin-----------------------------
+//-----------------------------------------------
 void FlexibleClockLibrary::begin() {
     pinMode(_OKpin, INPUT_PULLUP); // OK pin
     // attachInterrupt(digitalPinToInterrupt(_OKpin), handleOkInterrupt, FALLING);
@@ -67,11 +69,13 @@ void FlexibleClockLibrary::begin() {
     Serial.println("loading... display");
     clearDisp();
     _disp.setFont(u8g2_font_t0_11_tr);
+    Serial.print(digitalRead(_OKpin));
     uint8_t taskbar_show = 1;
      delay(200);
     if(digitalRead(_OKpin) == HIGH) {
         _BOOTSET();
     }
+    
     wifiType = 3;
     _disp.clearBuffer(); 
      _disp.setFont(u8g2_font_6x10_tf);
@@ -330,6 +334,49 @@ void FlexibleClockLibrary::mhz_tx() {
     // MHz transmit logic
 }
 
+
+//-----------------------------------------------
+//---------------game-gonki----------------------
+//-----------------------------------------------
+void FlexibleClockLibrary::gamegonki(){clearDisp();
+ int kamniY=8,kamniX=0,kamniPos=0,trigCarA=0,CarX=30,score=0,hscore=0;
+ for(int i=0;i=200000;i++){
+    delay(200);
+        
+if(digitalRead(_OKpin) == _OKsig) {
+   if(trigCarA == 0){trigCarA=1;
+      clearDisp(); 
+  }else{trigCarA = 0;
+      clearDisp();}}
+        
+ _disp.drawStr(0, 11, String(trigCarA).c_str());
+ _disp.drawStr(0, 22, String(score).c_str());
+ _disp.drawStr(0, 33, String(hscore).c_str());
+ _disp.drawStr(CarX, 55,"A");
+_disp.drawStr(kamniX, kamniY,"o");
+     
+if(trigCarA==0){CarX=40;}
+if(trigCarA==1){CarX=70;}
+  if(kamniY>=60){kamniPos=random(0,10); score+=1;
+   if(kamniPos<5){kamniX=40;kamniY=0;}
+   if(kamniPos>5){kamniX=70;kamniY=0;}
+            clearDisp();}
+kamniY+=8;
+    
+  if(kamniY>=55&&kamniX==CarX){clearDisp();
+    if(score > hscore){hscore = score;}
+     _disp.drawStr(0, 22, String(score).c_str());
+     _disp.drawStr(0, 33, String(hscore).c_str());
+     _disp.drawStr(10, 55,"game over");
+     _disp.drawStr(20, 22,"score");
+     _disp.drawStr(20, 33,"high-score");
+     _disp.sendBuffer();
+      delay(5000);
+      score=0;
+      clearDisp();}
+ _disp.sendBuffer();
+    
+}}
 
 //---------------
 //--button-------
