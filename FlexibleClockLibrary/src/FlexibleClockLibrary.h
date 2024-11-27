@@ -71,6 +71,8 @@ public:
     //other
     void getErr(const char* errMsg);
     void drawLines(const char* lineText);
+    //gamegonki
+    void gamegonki();
 
     // Variables
     static const char* autofliper;
