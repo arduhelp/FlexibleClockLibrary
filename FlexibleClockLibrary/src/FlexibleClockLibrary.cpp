@@ -54,7 +54,7 @@ FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OK
  
 
 const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "Option2", "Option3","Option4", "Exit", "info" ,"" }; // Ініціалізація статичного масиву
-const char* FlexibleClockLibrary::autofliper = "1";
+int FlexibleClockLibrary::autofliper = 1;
 
 
 //-----------------------------------------------
@@ -85,26 +85,6 @@ void FlexibleClockLibrary::begin() {
      _disp.clearBuffer(); // Очищаємо буфер дисплея
      _disp.sendBuffer();  // Виводимо змінений (порожній) буфер на екран
 }
-
-// err
-void FlexibleClockLibrary::getErr(const char* errMsg) {
-    clearDisp();
-    _disp.clearBuffer(); // clear the internal memory
-    _disp.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
-    _disp.drawStr(0, 10, "Err! please reboot."); // write something to the internal memory
-    Serial.println("Err! please reboot.");
-    _disp.drawStr(0, 20, errMsg); // display error message
-    Serial.println(errMsg);
-    _disp.sendBuffer(); // transfer internal memory to the display
-    delay(5000);
-}
-
-void FlexibleClockLibrary::clearDisp() {
-    _disp.clearBuffer(); // Очищаємо буфер дисплея
-    _disp.sendBuffer();  // Виводимо змінений (порожній) буфер на екран
-    return;
-}
-
 
 
 
@@ -152,12 +132,12 @@ void FlexibleClockLibrary::_BOOTSET() { clearDisp();
         y += lineHeight;  // Переходимо до наступного рядка
          _disp.drawStr(0, yP - lineHeight, " ");
          _disp.drawStr(0, yP, ">"); 
-         _disp.drawStr(80, 11, autofliper); 
+         _disp.drawStr(80, 11, String(autofliper).c_str()); 
     }
    if(_BOOTSETPointer == 7){_BOOTSETPointer = 0;}
         if(digitalRead(_OKpin) == _OKsig){
             switch(_BOOTSETPointer){
-                case 1: if(autofliper == "1"){autofliper = "0";}else{autofliper = "1";} delay(50); break;
+                case 1: if(autofliper == 1){autofliper = 0;}else{autofliper = 1;} delay(50); break;
                 
                 case 5:  _disp.clearBuffer(); _disp.drawStr(0, 20, "please reboot");  _disp.sendBuffer(); delay(5000); break;
                 case 6:  _disp.clearBuffer(); _disp.drawStr(0, 10, "powered by"); _disp.drawStr(0, 20, "FlexibleClockLibrary"); _disp.drawStr(0, 40, "github.com/arduhelp"); _disp.drawStr(0, 50, "/FlexibleClockLibrary"); _disp.sendBuffer(); delay(20000); break;
@@ -171,6 +151,60 @@ void FlexibleClockLibrary::_BOOTSET() { clearDisp();
    // delay(2000);
  }
 }
+
+
+
+//-----------------------------------------------
+//----------------err----------------------------
+//-----------------------------------------------
+void FlexibleClockLibrary::getErr(const char* errMsg) {
+    clearDisp();
+    _disp.clearBuffer(); // clear the internal memory
+    _disp.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
+    _disp.drawStr(0, 10, "Err! please reboot."); // write something to the internal memory
+    Serial.println("Err! please reboot.");
+    _disp.drawStr(0, 20, errMsg); // display error message
+    Serial.println(errMsg);
+    _disp.sendBuffer(); // transfer internal memory to the display
+    delay(5000);
+}
+//-----------------------------------------------
+//------------clear-disp-------------------------
+//-----------------------------------------------
+void FlexibleClockLibrary::clearDisp() {
+    _disp.clearBuffer(); // Очищаємо буфер дисплея
+    _disp.sendBuffer();  // Виводимо змінений (порожній) буфер на екран
+    return;
+}
+
+//-----------------------------------------------
+//----------clock-disp---------------------------
+//-----------------------------------------------
+void FlexibleClockLibrary::ClockDisp(){ 
+ _disp.clearBuffer(); 
+ _disp.setFont(u8g2_font_t0_22b_tf); // Вибір шрифту
+    while(true){
+ char timeBuffer[6];  // Буфер для збереження відформатованого часу
+//    Serial.println(taskbar_show);
+    
+   
+       // _disp.clearBuffer();            // Очищення буфера
+        sprintf(timeBuffer, "%02d:%02d", currentHours, currentMinutes); // Форматуємо час у вигляді "HH:MM"
+        _disp.drawStr(25, 30, timeBuffer);  // Виводимо час
+
+   if (digitalRead(_OKpin) == _OKsig) {
+      delay(1000); 
+      if (digitalRead(_OKpin) == _OKsig) { 
+       return; }}
+
+       _disp.sendBuffer(); 
+       delay(100);
+    }
+}
+
+
+
+
 
 
 //-----------------------------------------------
@@ -233,7 +267,7 @@ void FlexibleClockLibrary::taskbar_draw(int taskbar_y) {
 //    Serial.println(taskbar_show);
     
     if (taskbar_show == 1) {
-        _disp.clearBuffer();            // Очищення буфера
+       // _disp.clearBuffer();            // Очищення буфера
         _disp.setFont(u8g2_font_6x10_tf); // Вибір шрифту
         sprintf(timeBuffer, "%02d:%02d", currentHours, currentMinutes); // Форматуємо час у вигляді "HH:MM"
 
