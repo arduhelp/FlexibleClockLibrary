@@ -37,6 +37,8 @@ public:
     void taskbar_begin();
     void taskbar_draw(int taskbar_y = 8);
     void drawBitmape(const unsigned char* bitmape);
+    //clock
+    void ClockDisp();
     
     static const unsigned char _err_bitmap_err[];
     static const unsigned char _err_bitmap_noerr[];
@@ -75,7 +77,7 @@ public:
     void gamegonki();
 
     // Variables
-    static const char* autofliper;
+    static int autofliper;
     const char* lineText;
     uint8_t taskbar_show = 1;
   
