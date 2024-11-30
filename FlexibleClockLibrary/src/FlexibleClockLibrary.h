@@ -38,7 +38,7 @@ public:
     void taskbar_draw(int taskbar_y = 8);
     void drawBitmape(const unsigned char* bitmape);
     //clock
-    void ClockDisp();
+    void ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight);
     
     static const unsigned char _err_bitmap_err[];
     static const unsigned char _err_bitmap_noerr[];
@@ -62,7 +62,7 @@ public:
     uint8_t remoteType = 0;
     //wifi
     void wifi_connect(const char* WIFI_SSID1, const char* WIFI_PASS1);
-    void wifi_ap();
+    void wifi_ap(const char* ssidAP, const char* passwordAP);
     void wifi_scan();
     void wifi_disable();
     //ir
