@@ -180,22 +180,26 @@ void FlexibleClockLibrary::clearDisp() {
 //-----------------------------------------------
 //----------clock-disp---------------------------
 //-----------------------------------------------
-void FlexibleClockLibrary::ClockDisp(){ 
+void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight){ 
  _disp.clearBuffer(); 
  _disp.setFont(u8g2_font_t0_22b_tf); // Вибір шрифту
     while(true){
  char timeBuffer[6];  // Буфер для збереження відформатованого часу
 //    Serial.println(taskbar_show);
-    
+      // Малюємо фон, якщо передано бітмап
+    if (backgroundBitmap != nullptr) {
+      _disp.drawXBMP(0, 0, bitmapWidth, bitmapHeight, backgroundBitmap);
+    }
+
    
        // _disp.clearBuffer();            // Очищення буфера
         sprintf(timeBuffer, "%02d:%02d", currentHours, currentMinutes); // Форматуємо час у вигляді "HH:MM"
-        _disp.drawStr(25, 30, timeBuffer);  // Виводимо час
+        _disp.drawStr(ClockDispX, ClockDispY, timeBuffer);  // Виводимо час x:25, y:30
 
    if (digitalRead(_OKpin) == _OKsig) {
       delay(1000); 
       if (digitalRead(_OKpin) == _OKsig) { 
-       return; }}
+      delay(1000); return; }}
 
        _disp.sendBuffer(); 
        delay(100);
@@ -336,8 +340,21 @@ void FlexibleClockLibrary::wifi_connect(const char* WIFI_SSID1, const char* WIFI
 
 }
 
-void FlexibleClockLibrary::wifi_ap() {
-    // WiFi Access Point logic
+void FlexibleClockLibrary::wifi_ap(const char* ssidAP, const char* passwordAP) {
+    errType = 3;
+    taskbar_draw(8); 
+    delay(100);
+    Serial.print("Setting AP (Access Point)…");
+    WiFi.softAP(ssidAP, passwordAP);
+
+  Serial.print("AP IP address: ");
+  Serial.println(WiFi.softAPIP());
+
+  // Print ESP8266 Local IP Address
+  Serial.println(WiFi.localIP());
+  errType = 0;
+  wifiType = 2;
+  taskbar_draw(8); 
 }
 
 void FlexibleClockLibrary::wifi_scan() {
