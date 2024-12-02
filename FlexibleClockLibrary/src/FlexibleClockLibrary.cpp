@@ -180,7 +180,11 @@ void FlexibleClockLibrary::clearDisp() {
 //-----------------------------------------------
 //----------clock-disp---------------------------
 //-----------------------------------------------
-void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight){ 
+void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight){
+    unsigned long lastActivityTime = millis(); // Час останньої активності
+    bool displayOn = true; // Стан дисплея
+
+ 
  _disp.clearBuffer(); 
  _disp.setFont(u8g2_font_t0_22b_tf); // Вибір шрифту
     while(true){
@@ -203,7 +207,29 @@ void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8
 
        _disp.sendBuffer(); 
        delay(100);
+    
+    
+    if (millis() - lastActivityTime > 6000 && displayOn) {
+        
+        displayOn = false;
+        while(displayOn == false){
+            clearDisp();
+            if (digitalRead(_OKpin) == _OKsig) {
+                delay(200); 
+                if (digitalRead(_OKpin) == _OKsig) { 
+                    delay(1000);
+                     lastActivityTime = millis();
+                     displayOn = true;
+                      /*return;*/  break;  }}
+            delay(100);
+        }
     }
+
+    
+
+
+}
+
 }
 
 
