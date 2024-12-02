@@ -247,7 +247,7 @@ const unsigned char wallpaper_bitmap_bezmeteznist [] PROGMEM = {
 
 
 const char* MenuItems[7] = { "clock", "wifi", "IR","MHz", "games", "info" ,"" }; // Ініціалізація статичного масиву
-const char* WiFiMenuItems[7] = { "connect", "disable", "AP","scan", "prycoly", "back to menu" ,"" };
+const char* WiFiMenuItems[7] = { "connect", "disable", "AP","scan+", "prycoly", "back to menu" ,"" };
 
 
 void setup() {
@@ -258,6 +258,7 @@ void setup() {
   //clockLib.wifi_connect(".exe", "./wificonnecting.exe");
   clockLib.currentHours = 18;
   clockLib.currentMinutes = 58;
+  clockLib.ClockDisp(60, 30,/*wallpaper_bitmap_bezmeteznist*/ wallpaper_bitmap_chrismas_tree, 128, 64);
 
 }
 
@@ -328,7 +329,7 @@ void menu() { // menu
       u8g2.drawStr(30, 22, MenuItems[5]);  
       u8g2.drawStr(30, 40, MenuItems[parampam]);
       u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
-      if(digitalRead(okpin) == oksig){ clockLib.ClockDisp(70, 60,wallpaper_bitmap_bezmeteznist /*wallpaper_bitmap_chrismas_tree*/, 128, 64);}
+      if(digitalRead(okpin) == oksig){ clockLib.ClockDisp(60, 30,/*wallpaper_bitmap_bezmeteznist*/ wallpaper_bitmap_chrismas_tree, 128, 64);}
       //u8g2.sendBuffer(); 60 30
       break;
 
@@ -401,7 +402,7 @@ void pmenuwifi(){// menu
   u8g2.drawStr(30, 40, "wifi");
   u8g2.sendBuffer();
   delay(1000);
-  while(true){
+  for(int i=0;i=20000;i++){
   clockLib.taskbar_draw(8);
   u8g2.setFont(u8g2_font_crox1hb_tf);
   static int parampamw = 0; // Змінна повинна бути статичною, щоб зберігати значення між викликами функції
@@ -447,7 +448,7 @@ void pmenuwifi(){// menu
       u8g2.drawStr(30, 22, WiFiMenuItems[parampamw - 1]);
       u8g2.drawStr(30, 40, WiFiMenuItems[parampamw]);
       u8g2.drawStr(30, 60, WiFiMenuItems[parampamw + 1]);
-      if(digitalRead(okpin) == oksig){}
+      if(digitalRead(okpin) == oksig){loopFunction();}
       //u8g2.sendBuffer();
       break;
 
@@ -498,3 +499,96 @@ void pmenuwifi(){// menu
 void pmenuir(){}
 void pmenumhz(){}
 void pmenugames(){}
+
+
+
+
+
+
+
+
+
+
+
+//other-------------------------------
+void loopFunction() {
+   u8g2.setFont(u8g2_font_squeezed_b7_tr);
+  while(true){
+  static int currentNetwork = 0;
+  static int numNetworks = 0;
+  static bool buttonPressed = false;
+ 
+
+  // Ініціалізація дисплея та WiFi
+  if (numNetworks == 0) {
+    
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    numNetworks = WiFi.scanNetworks();
+    u8g2.clearBuffer();
+   
+    u8g2.drawStr(0, 20, "Scanning...");
+    u8g2.sendBuffer();
+    delay(10000);
+  }
+
+  // Обробка кнопки
+  if (digitalRead(okpin) == LOW && !buttonPressed) {
+    buttonPressed = true;
+    delay(200); // Антидребезг
+   clockLib.taskbar_draw(7);
+    if (numNetworks > 0) {
+      currentNetwork = (currentNetwork + 1) % numNetworks; // Перегортання мереж
+    } else {
+      numNetworks = WiFi.scanNetworks(); // Якщо мережі не знайдено, сканувати знову
+    }
+  } else if (digitalRead(okpin) == HIGH) {
+    buttonPressed = false;
+    clockLib.taskbar_draw(7);
+  }
+
+  // Вивід інформації
+  u8g2.clearBuffer();
+  //u8g2.setFont(u8g2_font_t0_11_tr);
+
+  if (numNetworks > 0) {
+     
+    u8g2.setCursor(0, 20);
+    u8g2.print("SSID: ");
+    u8g2.print(WiFi.SSID(currentNetwork).c_str());
+    u8g2.setCursor(0, 30);
+    u8g2.print("MAC:");
+    u8g2.println(WiFi.BSSIDstr(currentNetwork));
+    u8g2.setCursor(0, 38);
+    u8g2.print("RSSI: ");
+    u8g2.print(WiFi.RSSI(currentNetwork));
+    u8g2.setCursor(0, 45);
+    u8g2.print("Channel: ");
+    u8g2.print(WiFi.channel(currentNetwork));
+    u8g2.setCursor(0, 52);
+    u8g2.print("Security: ");
+    u8g2.print(getEncryptionType(WiFi.encryptionType(currentNetwork)).c_str());
+  } else {
+    u8g2.drawStr(0, 20, "No networks found.");
+  }
+
+  u8g2.sendBuffer();
+  delay(100);
+}}
+
+String getEncryptionType(int type) {
+  switch (type) {
+    case ENC_TYPE_NONE:
+      return "Open";
+    case ENC_TYPE_WEP:
+      return "WEP";
+    case ENC_TYPE_TKIP:
+      return "WPA/TKIP";
+    case ENC_TYPE_CCMP:
+      return "WPA2/CCMP";
+    case ENC_TYPE_AUTO:
+      return "Auto";
+    default:
+      return "Unknown";
+  }
+}
