@@ -1,4 +1,6 @@
 #include <U8g2lib.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 #include <FlexibleClockLibrary.h>
 
 #ifdef U8X8_HAVE_HW_SPI
@@ -17,7 +19,8 @@ const char* password = "YourPassword";
 
 // Ініціалізація об’єкта FlexibleClockLibrary
 FlexibleClockLibrary clockLib(u8g2, 16, 1, A0, ssid, password, D5, D6, D7, D8);
-//NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000);
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org");
 byte oksig = 1;
 char okpin = 16;
 
@@ -256,6 +259,7 @@ void setup() {
   Serial.println("ready!");
   clockLib.taskbar_show = 1;
   //clockLib.wifi_connect(".exe", "./wificonnecting.exe");
+  timeClient.begin(); // Ініціалізуємо NTP-клієнт
   clockLib.currentHours = 18;
   clockLib.currentMinutes = 58;
   clockLib.ClockDisp(60, 30,/*wallpaper_bitmap_bezmeteznist*/ wallpaper_bitmap_chrismas_tree, 128, 64);
@@ -270,6 +274,7 @@ void loop() {
  //clockLib.drawLines("\n test\n love\n FCL OS");
 
   menu();
+  updateClock();
 
 //u8g2.clearBuffer();
    
@@ -289,7 +294,7 @@ void loop() {
         } else if (command == "wifi_ap" || command == "wa") {
             clockLib.wifi_ap("test_debug","debugg");
         } else if (command == "wifi_scan" || command == "ws") {
-            clockLib.wifi_scan();
+            scan_plus();
         } else if (command == "wifi_disable" || command == "wd") {
             clockLib.wifi_disable();
         } else if (command == "ir_rx" || command == "irr") {
@@ -304,6 +309,8 @@ void loop() {
             clockLib.drawLines("Sample Line Text");
         } else if (command == "gamegonki" || command == "gg") {
             clockLib.gamegonki();
+        } else if (command == "updateClock" || command == "uc") {
+            updateClock();
         } else {
             Serial.println("Unknown command");
         }
@@ -314,6 +321,27 @@ void loop() {
 
  
 }
+
+//gpt code
+void updateClock() {
+  unsigned long localTime = 0;
+  unsigned long lastMillis = 0;
+  if (WiFi.status() == WL_CONNECTED) {
+    timeClient.setTimeOffset(clockLib.UTC * 3600); // Налаштування UTC
+    timeClient.update();
+    localTime = timeClient.getEpochTime();
+    lastMillis = millis();
+  } else {
+    localTime += (millis() - lastMillis) / 1000;
+    lastMillis = millis();
+  }
+
+  unsigned long adjustedTime = localTime + (clockLib.UTC * 3600);
+  clockLib.currentHours = (adjustedTime % 86400L) / 3600;
+  clockLib.currentMinutes = (adjustedTime % 3600) / 60;
+}
+//end gpt code
+
 void menu() { // menu 
   u8g2.setFont(u8g2_font_crox1hb_tf);
   static int parampam = 0; // Змінна повинна бути статичною, щоб зберігати значення між викликами функції
@@ -448,7 +476,7 @@ void pmenuwifi(){// menu
       u8g2.drawStr(30, 22, WiFiMenuItems[parampamw - 1]);
       u8g2.drawStr(30, 40, WiFiMenuItems[parampamw]);
       u8g2.drawStr(30, 60, WiFiMenuItems[parampamw + 1]);
-      if(digitalRead(okpin) == oksig){loopFunction();}
+      if(digitalRead(okpin) == oksig){scan_plus();}
       //u8g2.sendBuffer();
       break;
 
@@ -511,12 +539,18 @@ void pmenugames(){}
 
 
 //other-------------------------------
-void loopFunction() {
+void pmenuscanplus(){
+    u8g2.setCursor(0, 52);
+    u8g2.print("rescan/exit");
+    u8g2.sendBuffer();
+    }
+void scan_plus() {
    u8g2.setFont(u8g2_font_squeezed_b7_tr);
   while(true){
   static int currentNetwork = 0;
   static int numNetworks = 0;
   static bool buttonPressed = false;
+  static unsigned long buttonPressTime = 0;
  
 
   // Ініціалізація дисплея та WiFi
@@ -529,23 +563,29 @@ void loopFunction() {
    
     u8g2.drawStr(0, 20, "Scanning...");
     u8g2.sendBuffer();
-    delay(10000);
+    delay(8000);
   }
 
   // Обробка кнопки
-  if (digitalRead(okpin) == LOW && !buttonPressed) {
-    buttonPressed = true;
-    delay(200); // Антидребезг
-   clockLib.taskbar_draw(7);
-    if (numNetworks > 0) {
-      currentNetwork = (currentNetwork + 1) % numNetworks; // Перегортання мереж
-    } else {
-      numNetworks = WiFi.scanNetworks(); // Якщо мережі не знайдено, сканувати знову
+  if (digitalRead(okpin) == oksig) {
+    if (!buttonPressed) {
+      buttonPressed = true;
+      buttonPressTime = millis();
+    } else if (millis() - buttonPressTime > 1000) { // Довге натискання (1 секунда)
+      buttonPressed = false;
+      return;
     }
-  } else if (digitalRead(okpin) == HIGH) {
+  } else if (digitalRead(okpin) != oksig) {
+    if (buttonPressed && millis() - buttonPressTime <= 1000) { // Коротке натискання
+      if (numNetworks > 0) {
+        currentNetwork = (currentNetwork + 1) % numNetworks; // Перегортання мереж
+      } else {
+        numNetworks = WiFi.scanNetworks(); // Якщо мережі не знайдено, сканувати знову
+      }
+    }
     buttonPressed = false;
-    clockLib.taskbar_draw(7);
   }
+
 
   // Вивід інформації
   u8g2.clearBuffer();
@@ -554,8 +594,9 @@ void loopFunction() {
   if (numNetworks > 0) {
      
     u8g2.setCursor(0, 20);
-    u8g2.print("SSID: ");
+    u8g2.print("SSID:");
     u8g2.print(WiFi.SSID(currentNetwork).c_str());
+    Serial.print(WiFi.SSID(currentNetwork)+" ");
     u8g2.setCursor(0, 30);
     u8g2.print("MAC:");
     u8g2.println(WiFi.BSSIDstr(currentNetwork));
@@ -568,6 +609,11 @@ void loopFunction() {
     u8g2.setCursor(0, 52);
     u8g2.print("Security: ");
     u8g2.print(getEncryptionType(WiFi.encryptionType(currentNetwork)).c_str());
+    u8g2.setCursor(60, 62);
+    u8g2.print("page");
+    u8g2.print(currentNetwork);
+    u8g2.print("/");
+    u8g2.print(numNetworks - 1);
   } else {
     u8g2.drawStr(0, 20, "No networks found.");
   }
