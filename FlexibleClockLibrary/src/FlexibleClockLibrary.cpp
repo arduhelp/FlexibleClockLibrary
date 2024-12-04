@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 
+
  const unsigned char FlexibleClockLibrary::_err_bitmap_err [] PROGMEM = {
     0x00, 0x00, 0x10, 0x28, 0x6c, 0x7c, 0xee, 0xfe
 };
@@ -53,7 +54,7 @@ FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OK
 }
  
 
-const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "Option2", "Option3","Option4", "Exit", "info" ,"" }; // Ініціалізація статичного масиву
+const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "Option2", "Option3","utc+", "Exit", "info" ,"" }; // Ініціалізація статичного масиву
 int FlexibleClockLibrary::autofliper = 1;
 
 
@@ -79,7 +80,8 @@ void FlexibleClockLibrary::begin() {
     wifiType = 3;
     _disp.clearBuffer(); 
      _disp.setFont(u8g2_font_6x10_tf);
-     _disp.drawStr(5, 62, "FlexibleClockLib"); 
+     _disp.drawStr(5, 54, "FlexibleClockLib"); 
+     _disp.drawStr(80, 64, "v1.0s0"); 
      _disp.sendBuffer();
      delay(2000);
      _disp.clearBuffer(); // Очищаємо буфер дисплея
@@ -295,12 +297,12 @@ void FlexibleClockLibrary::taskbar_begin() {
 void FlexibleClockLibrary::taskbar_draw(int taskbar_y) {
     char timeBuffer[6];  // Буфер для збереження відформатованого часу
 //    Serial.println(taskbar_show);
+_disp.setFont(u8g2_font_6x10_tf); // Вибір шрифту
     
     if (taskbar_show == 1) {
        // _disp.clearBuffer();            // Очищення буфера
-        _disp.setFont(u8g2_font_6x10_tf); // Вибір шрифту
+       // _disp.setFont(u8g2_font_6x10_tf); // Вибір шрифту
         sprintf(timeBuffer, "%02d:%02d", currentHours, currentMinutes); // Форматуємо час у вигляді "HH:MM"
-
         // Виводимо на дисплей
         _disp.drawStr(0, taskbar_y, timeBuffer);  // Виводимо час
         if(errType == 0) { _disp.drawXBMP(30, taskbar_y - 8, 8, 8, FlexibleClockLibrary::_err_bitmap_noerr); 
@@ -349,9 +351,11 @@ void FlexibleClockLibrary::wifi_connect(const char* WIFI_SSID1, const char* WIFI
      if (digitalRead(_OKpin) == _OKsig) {
         errType = 2;
         taskbar_draw(8);
+        //gpt code
       delay(1000); // Затримка для запобігання повторенню натискань
       if (digitalRead(_OKpin) == _OKsig) { // Якщо кнопку ще тримають, вийти з циклу
        break; }}
+       //end gpt code
   }
   attemptCounter = 0;
   if(WiFi.status() == WL_CONNECTED){
@@ -416,15 +420,16 @@ void FlexibleClockLibrary::mhz_tx() {
 //---------------game-gonki----------------------
 //-----------------------------------------------
 void FlexibleClockLibrary::gamegonki(){clearDisp();
- int kamniY=8,kamniX=0,kamniPos=0,trigCarA=0,CarX=30,score=0,hscore=0;
- for(int i=0;i=200000;i++){
+ int kamniY=8,kamniX=0,kamniPos=0,trigCarA=0,CarX=30,score=0,hscore=0,bthold=2000;
+ unsigned long lastActivityTime = millis();
+ for(int i=0;i=20000;i++){
     delay(200);
         
-if(digitalRead(_OKpin) == _OKsig) {
-   if(trigCarA == 0){trigCarA=1;
-      clearDisp(); 
-  }else{trigCarA = 0;
-      clearDisp();}}
+        if(digitalRead(_OKpin) == _OKsig) {
+            if(trigCarA == 0){trigCarA=1;
+              clearDisp(); 
+             }else{trigCarA = 0;
+                clearDisp();}}
         
  _disp.drawStr(0, 11, String(trigCarA).c_str());
  _disp.drawStr(0, 22, String(score).c_str());
