@@ -7,7 +7,6 @@
 
 
 
-
 #ifdef ESP32
     #include <WiFi.h>
     #include <WiFiClient.h>
@@ -40,7 +39,8 @@ public:
     void drawBitmape(const unsigned char* bitmape);
     //clock
     void ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight);
-    
+    void ClockUpdate();
+
     static const unsigned char _err_bitmap_err[];
     static const unsigned char _err_bitmap_noerr[];
     static const unsigned char _err_bitmap_qestoin[];
@@ -76,13 +76,14 @@ public:
     void drawLines(const char* lineText);
     //gamegonki
     void gamegonki();
+    
 
     // Variables
     static int autofliper;
     const char* lineText;
     uint8_t taskbar_show = 1;
   
-    char UTC = 0; //your time zone (utc)
+    int UTC = 0; //your time zone (utc)
     
 
     int currentHours = 0;         // Поточні години
@@ -108,7 +109,7 @@ private:
     uint8_t _mHz_tx; // MHz TX pin
     uint8_t _vibroPin; // Vibration motor pin
 
-
+    
 
 
 
