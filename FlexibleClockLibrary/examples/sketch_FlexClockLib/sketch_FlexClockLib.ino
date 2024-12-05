@@ -262,7 +262,10 @@ void setup() {
   timeClient.begin(); // Ініціалізуємо NTP-клієнт
   clockLib.currentHours = 18;
   clockLib.currentMinutes = 58;
+    clockLib.UTC = 0;
+clockLib.currentHours += clockLib.UTC;
   clockLib.ClockDisp(60, 30,/*wallpaper_bitmap_bezmeteznist*/ wallpaper_bitmap_chrismas_tree, 128, 64);
+
 
 }
 
@@ -274,7 +277,7 @@ void loop() {
  //clockLib.drawLines("\n test\n love\n FCL OS");
 
   menu();
-  updateClock();
+  //updateClock();
 
 //u8g2.clearBuffer();
    
@@ -309,8 +312,8 @@ void loop() {
             clockLib.drawLines("Sample Line Text");
         } else if (command == "gamegonki" || command == "gg") {
             clockLib.gamegonki();
-        } else if (command == "updateClock" || command == "uc") {
-            updateClock();
+        } else if (command == "ClockDisp" || command == "cd") {
+            clockLib.ClockDisp(60, 30,/*wallpaper_bitmap_bezmeteznist*/ wallpaper_bitmap_chrismas_tree, 128, 64);
         } else {
             Serial.println("Unknown command");
         }
@@ -323,7 +326,7 @@ void loop() {
 }
 
 //gpt code
-void updateClock() {
+/*void updateClock() {
   unsigned long localTime = 0;
   unsigned long lastMillis = 0;
   if (WiFi.status() == WL_CONNECTED) {
@@ -341,7 +344,7 @@ void updateClock() {
   clockLib.currentMinutes = (adjustedTime % 3600) / 60;
 }
 //end gpt code
-
+*/
 void menu() { // menu 
   u8g2.setFont(u8g2_font_crox1hb_tf);
   static int parampam = 0; // Змінна повинна бути статичною, щоб зберігати значення між викликами функції
