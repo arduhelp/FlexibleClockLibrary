@@ -54,7 +54,9 @@ FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OK
 }
  
 
-const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "Option2", "Option3","utc+", "Exit", "info" ,"" }; // Ініціалізація статичного масиву
+
+
+const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "OTA update", "Option3","utc+", "Exit", "info" ,"" }; // Ініціалізація статичного масиву
 int FlexibleClockLibrary::autofliper = 1;
 
 
@@ -81,11 +83,12 @@ void FlexibleClockLibrary::begin() {
     _disp.clearBuffer(); 
      _disp.setFont(u8g2_font_6x10_tf);
      _disp.drawStr(5, 54, "FlexibleClockLib"); 
-     _disp.drawStr(80, 64, "v1.0s0"); 
+     _disp.drawStr(80, 64, "v1.0s3"); 
      _disp.sendBuffer();
      delay(2000);
      _disp.clearBuffer(); // Очищаємо буфер дисплея
      _disp.sendBuffer();  // Виводимо змінений (порожній) буфер на екран
+        
 }
 
 
@@ -182,11 +185,12 @@ void FlexibleClockLibrary::clearDisp() {
 //-----------------------------------------------
 //----------clock-disp---------------------------
 //-----------------------------------------------
+
 void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight){
     unsigned long lastActivityTime = millis(); // Час останньої активності
     bool displayOn = true; // Стан дисплея
+while(true){
 
- 
  _disp.clearBuffer(); 
  _disp.setFont(u8g2_font_t0_22b_tf); // Вибір шрифту
     while(true){
@@ -219,6 +223,9 @@ void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8
             if (digitalRead(_OKpin) == _OKsig) {
                 delay(200); 
                 if (digitalRead(_OKpin) == _OKsig) { 
+                    if (WiFi.status() != WL_CONNECTED) {
+                        ClockUpdate(); 
+                    }
                     delay(1000);
                      lastActivityTime = millis();
                      displayOn = true;
@@ -232,9 +239,52 @@ void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8
 
 }
 
+}}
+
+    int UTC = 0; //your time zone (utc)
+    
+
+unsigned long previousMillis = 0; // Для відстеження часу
+void FlexibleClockLibrary::ClockUpdate(){
+    //gptcode 
+ unsigned long currentMillis = millis(); // Поточний час у мілісекундах
+
+  // Обчислюємо, скільки часу минуло
+  unsigned long elapsedMillis = currentMillis - previousMillis;
+  if (elapsedMillis >= 60000) { // Якщо пройшла хоча б одна хвилина
+    previousMillis = currentMillis - (elapsedMillis % 60000); // Зберігаємо залишок
+
+    int elapsedMinutes = elapsedMillis / 60000; // Переводимо у хвилини
+    currentMinutes += elapsedMinutes; // Додаємо до хвилин
+
+    // Перевіряємо, чи потрібно збільшити години
+    while (currentMinutes >= 60) {
+      currentMinutes -= 60;
+      currentHours++;
+      if (currentHours >= 24) {
+        currentHours = 0; // Переходимо до наступної доби
+      }
+    }
+
+    // Додаємо зсув UTC
+    //currentHours += UTC;
+    if (currentHours >= 24) {
+      currentHours -= 24; // Коригуємо перехід через добу
+    } else if (currentHours < 0) {
+      currentHours += 24; // Коригуємо від'ємний час
+    }
+  }
+
+  // Відображаємо час
+  Serial.print("Time: ");
+  if (currentHours < 10) Serial.print("0"); // Додаємо 0 перед годинами
+  Serial.print(currentHours);
+  Serial.print(":");
+  if (currentMinutes < 10) Serial.print("0"); // Додаємо 0 перед хвилинами
+  Serial.println(currentMinutes);
+  //end
+   return;
 }
-
-
 
 
 
@@ -272,6 +322,7 @@ void FlexibleClockLibrary::drawLines(const char* lineText) {
 
     _disp.sendBuffer(); // Оновлюємо екран
     //gpt code end
+   
 }
 
 
@@ -455,6 +506,7 @@ kamniY+=8;
      _disp.sendBuffer();
       delay(5000);
       score=0;
+      if(digitalRead(_OKpin) == _OKsig){return;}
       clearDisp();}
  _disp.sendBuffer();
     
