@@ -49,7 +49,7 @@ FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OK
                                            uint8_t IR_tx, uint8_t IR_rx, uint8_t mHz_tx, uint8_t vibroPin)
     : _disp(disp), _OKpin(OKpin), _OKsig(OKsig), _analogButton(analogButton), _ssidConfig(ssidConfig), 
       _passwordConfig(passwordConfig), _IR_tx(IR_tx), _IR_rx(IR_rx), 
-      _mHz_tx(mHz_tx), _vibroPin(vibroPin) {
+      _mHz_tx(mHz_tx), _vibroPin(vibroPin), server(80) {
     // Ініціалізація змінних класу
 }
  
@@ -57,12 +57,17 @@ FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OK
 
 
 const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "OTA update", "Option3","utc+", "Exit", "info" ,"" }; // Ініціалізація статичного масиву
+    const char* FlexibleClockLibrary::_host_ota = "espFCL-webupdate";
+    const char* FlexibleClockLibrary::_ssid_ota = "espFCL-OTA";
+    const char* FlexibleClockLibrary::_password_ota;
+    const char* FlexibleClockLibrary::_serverIndex_ota = "<h2>FlexibleClockLib Firmware Update</h2><form method='POST' action='/update' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>";
+
 int FlexibleClockLibrary::autofliper = 1;
 
 
-//-----------------------------------------------
-//-------------begin-----------------------------
-//-----------------------------------------------
+//-------------------------------------
+//-------------begin-------------------
+//-------------------------------------
 void FlexibleClockLibrary::begin() {
     pinMode(_OKpin, INPUT_PULLUP); // OK pin
     // attachInterrupt(digitalPinToInterrupt(_OKpin), handleOkInterrupt, FALLING);
@@ -84,6 +89,7 @@ void FlexibleClockLibrary::begin() {
      _disp.setFont(u8g2_font_6x10_tf);
      _disp.drawStr(5, 54, "FlexibleClockLib"); 
      _disp.drawStr(80, 64, "v1.0s3"); 
+     int ClockUpdateMillis = 1;
      _disp.sendBuffer();
      delay(2000);
      _disp.clearBuffer(); // Очищаємо буфер дисплея
@@ -94,9 +100,9 @@ void FlexibleClockLibrary::begin() {
 
 
 
-//-----------------------------------------------
-//-----BOOTSET-----------------------------------
-//-----------------------------------------------
+//------------------------------------- ┳┓┏┓┏┓┏┳┓┏┓┏┓┏┳┓
+//-----BOOTSET------------------------- ┣┫┃┃┃┃ ┃ ┗┓┣  ┃ 
+//------------------------------------- ┻┛┗┛┗┛ ┻ ┗┛┗┛ ┻ 
 
 
 // BOOTSETTINGS
@@ -156,12 +162,64 @@ void FlexibleClockLibrary::_BOOTSET() { clearDisp();
    // delay(2000);
  }
 }
+//-------------OTA-update--------------
+void FlexibleClockLibrary::_OTA_UPDATE() {
+  Serial.println();
+  Serial.println("Booting Sketch...");
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.begin(_ssid_ota, _password_ota);
+  if (WiFi.waitForConnectResult() == WL_CONNECTED) {
+    MDNS.begin(_host_ota);
+    server.on("/", HTTP_GET, [this]() {
+      server.sendHeader("Connection", "close");
+      server.send(200, "text/html", _serverIndex_ota);
+    });
+    server.on(
+      "/update", HTTP_POST, [this]() {
+        server.sendHeader("Connection", "close");
+        server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+        ESP.restart();
+      },
+      [this]() {
+        HTTPUpload& upload = server.upload();
+        if (upload.status == UPLOAD_FILE_START) {
+          Serial.setDebugOutput(true);
+          WiFiUDP::stopAll();
+          Serial.printf("Update: %s\n", upload.filename.c_str());
+          uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+          if (!Update.begin(maxSketchSpace)) {  // start with max available size
+            Update.printError(Serial);
+          }
+        } else if (upload.status == UPLOAD_FILE_WRITE) {
+          if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+            Update.printError(Serial);
+          }
+        } else if (upload.status == UPLOAD_FILE_END) {
+          if (Update.end(true)) {  // true to set the size to the current progress
+            Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+          } else {
+            Update.printError(Serial);
+          }
+          Serial.setDebugOutput(false);
+        }
+        yield();
+      });
+    server.begin();
+    MDNS.addService("http", "tcp", 80);
+
+    Serial.printf("Ready! Open http://%s.local in your browser\n", _host_ota);
+  } else {
+    Serial.println("WiFi Failed");
+  }
+}
 
 
 
-//-----------------------------------------------
-//----------------err----------------------------
-//-----------------------------------------------
+
+
+//-------------------------------------
+//----------------err------------------
+//-------------------------------------
 void FlexibleClockLibrary::getErr(const char* errMsg) {
     clearDisp();
     _disp.clearBuffer(); // clear the internal memory
@@ -173,18 +231,18 @@ void FlexibleClockLibrary::getErr(const char* errMsg) {
     _disp.sendBuffer(); // transfer internal memory to the display
     delay(5000);
 }
-//-----------------------------------------------
-//------------clear-disp-------------------------
-//-----------------------------------------------
+//-------------------------------------
+//------------clear-disp---------------
+//-------------------------------------
 void FlexibleClockLibrary::clearDisp() {
     _disp.clearBuffer(); // Очищаємо буфер дисплея
     _disp.sendBuffer();  // Виводимо змінений (порожній) буфер на екран
     return;
 }
 
-//-----------------------------------------------
-//----------clock-disp---------------------------
-//-----------------------------------------------
+//-------------------------------------
+//----------clock-disp-----------------
+//-------------------------------------
 
 void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight){
     unsigned long lastActivityTime = millis(); // Час останньої активності
@@ -223,7 +281,7 @@ while(true){
             if (digitalRead(_OKpin) == _OKsig) {
                 delay(200); 
                 if (digitalRead(_OKpin) == _OKsig) { 
-                    if (WiFi.status() != WL_CONNECTED) {
+                    if (/*WiFi.status() != WL_CONNECTED &&*/ ClockUpdateMillis == 1) {
                         ClockUpdate(); 
                     }
                     delay(1000);
@@ -289,9 +347,9 @@ void FlexibleClockLibrary::ClockUpdate(){
 
 
 
-//-----------------------------------------------
-//--------drawLines------------------------------
-//-----------------------------------------------
+//-------------------------------------
+//--------drawLines--------------------
+//-------------------------------------
 
 
 void FlexibleClockLibrary::drawLines(const char* lineText) {
@@ -332,7 +390,7 @@ void FlexibleClockLibrary::drawLines(const char* lineText) {
 
 
 
-// taskbar----------------------------------------
+// taskbar-----------------------------
 void FlexibleClockLibrary::taskbar_begin() {
   // taskbar_draw();
 }
@@ -340,9 +398,9 @@ void FlexibleClockLibrary::taskbar_begin() {
 
 
 
-//-----------------------------------------------
-//----------taskbar_draw-------------------------
-//-----------------------------------------------
+//-------------------------------------┌┬┐┌─┐┌─┐┬┌─┌┐ ┌─┐┬─┐  ┌┬┐┬─┐┌─┐┬ ┬
+//----------taskbar_draw--------------- │ ├─┤└─┐├┴┐├┴┐├─┤├┬┘───││├┬┘├─┤│││
+//------------------------------------- ┴ ┴ ┴└─┘┴ ┴└─┘┴ ┴┴└─  ─┴┘┴└─┴ ┴└┴┘
  int currentHours;
  int currentMinutes;
 void FlexibleClockLibrary::taskbar_draw(int taskbar_y) {
@@ -387,9 +445,9 @@ void FlexibleClockLibrary::drawBitmape(const unsigned char* bitmape) {
 }
 
 
-//-----------------------------------------------
-//---------------wifi----------------------------
-//-----------------------------------------------
+//-------------------------------------
+//---------------wifi------------------
+//-------------------------------------
 void FlexibleClockLibrary::wifi_connect(const char* WIFI_SSID1, const char* WIFI_PASS1) {
     int attemptCounter = 0;
     
@@ -448,9 +506,9 @@ void FlexibleClockLibrary::wifi_disable() {
     wifiType = 0;
 }
 
-//-----------------------------------------------
-//----------------ir-----------------------------
-//-----------------------------------------------
+//-------------------------------------
+//----------------ir-------------------
+//-------------------------------------
 void FlexibleClockLibrary::ir_rx() {
     // IR receive logic
 }
@@ -459,17 +517,17 @@ void FlexibleClockLibrary::ir_tx() {
     // IR transmit logic
 }
 
-//-----------------------------------------------
-//---------------MHz-----------------------------
-//-----------------------------------------------
+//-------------------------------------
+//---------------MHz-------------------
+//-------------------------------------
 void FlexibleClockLibrary::mhz_tx() {
     // MHz transmit logic
 }
 
 
-//-----------------------------------------------
-//---------------game-gonki----------------------
-//-----------------------------------------------
+//-------------------------------------
+//---------------game-gonki------------
+//-------------------------------------
 void FlexibleClockLibrary::gamegonki(){clearDisp();
  int kamniY=8,kamniX=0,kamniPos=0,trigCarA=0,CarX=30,score=0,hscore=0,bthold=2000;
  unsigned long lastActivityTime = millis();
