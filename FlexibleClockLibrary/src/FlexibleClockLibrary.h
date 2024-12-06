@@ -16,6 +16,8 @@
 #elif defined(ESP8266)
     #include <ESP8266WiFi.h>
     #include <WiFiClient.h>
+    #include <ESP8266WebServer.h>
+    #include <ESP8266mDNS.h>
    // #include <ESP8266WebServer.h>
   //  ESP8266WebServer server(80);
 #else
@@ -26,7 +28,8 @@ class FlexibleClockLibrary{
 public:
     // Constructor
     FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OKsig, uint8_t analogButton, const char* ssidConfig, const char* passwordConfig, uint8_t IR_tx, uint8_t IR_rx, uint8_t mHz_tx, uint8_t vibroPin);
-    
+    ESP8266WebServer server;
+
 
 
     // Public Methods
@@ -89,6 +92,7 @@ public:
     int currentHours = 0;         // Поточні години
     int currentMinutes = 0;       // Поточні хвилини
     unsigned long lastSyncTime = 0; // Час останнього оновлення
+    int ClockUpdateMillis; //при відсутності віфі оновлювати з допомогою міліс
 
     
   
@@ -109,7 +113,11 @@ private:
     uint8_t _mHz_tx; // MHz TX pin
     uint8_t _vibroPin; // Vibration motor pin
 
-    
+    static const char* _host_ota;
+    static const char* _ssid_ota;
+    static const char* _password_ota;
+    static const char* _serverIndex_ota;
+
 
 
 
@@ -119,6 +127,7 @@ private:
 
     // Static Methods
     void _BOOTSET();
+    void _OTA_UPDATE();
 };
 
 #endif // FLEXIBLECLOCKLIBRARY_h
