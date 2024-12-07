@@ -57,10 +57,12 @@ FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OK
 
 
 const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "OTA update", "Option3","utc+", "Exit", "info" ,"" }; // Ініціалізація статичного масиву
-    const char* FlexibleClockLibrary::_host_ota = "espFCL-webupdate";
+    const char* FlexibleClockLibrary::_host_ota = "espfcl-webupdate";
     const char* FlexibleClockLibrary::_ssid_ota = "espFCL-OTA";
-    const char* FlexibleClockLibrary::_password_ota;
-    const char* FlexibleClockLibrary::_serverIndex_ota = "<h2>FlexibleClockLib Firmware Update</h2><form method='POST' action='/update' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>";
+    const char* FlexibleClockLibrary::_password_ota = "098765432123";
+    //----50%-AI-code------------------
+    const char* FlexibleClockLibrary::_serverIndex_ota = "<h2 style='margin-bottom: 20px; font-weight: 700; color: #333;'>FlexibleClockLib Firmware Update</h2><form method='POST' action='/update' enctype='multipart/form-data' style='display: inline-block; background-color: #1e1e1e; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);'><input type='file' name='update' accept='.bin' style='display: block; width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #444; border-radius: 4px; font-size: 14px; background: linear-gradient(135deg, #2b2b2b, #3c3c3c); color: #e0e0e0; outline: none; cursor: pointer; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);'><input type='submit' value='Update' style='display: block; width: 100%; padding: 12px; border: none; border-radius: 4px; background: linear-gradient(135deg, #fc4a1a, #f7b733); color: #fff; font-size: 16px; font-weight: 500; text-transform: uppercase; font-weight: bold; cursor: pointer; transition: background 0.3s; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);'></form>";
+    //---end-50%-AI-code---------------
 
 int FlexibleClockLibrary::autofliper = 1;
 
@@ -80,7 +82,7 @@ void FlexibleClockLibrary::begin() {
     Serial.print(digitalRead(_OKpin));
     uint8_t taskbar_show = 1;
      delay(200);
-    if(digitalRead(_OKpin) == HIGH) {
+    if(digitalRead(_OKpin) == _OKsig) {
         _BOOTSET();
     }
     
@@ -88,7 +90,7 @@ void FlexibleClockLibrary::begin() {
     _disp.clearBuffer(); 
      _disp.setFont(u8g2_font_6x10_tf);
      _disp.drawStr(5, 54, "FlexibleClockLib"); 
-     _disp.drawStr(80, 64, "v1.0s3"); 
+     _disp.drawStr(80, 64, "v1.1s0"); 
      int ClockUpdateMillis = 1;
      _disp.sendBuffer();
      delay(2000);
@@ -149,7 +151,8 @@ void FlexibleClockLibrary::_BOOTSET() { clearDisp();
         if(digitalRead(_OKpin) == _OKsig){
             switch(_BOOTSETPointer){
                 case 1: if(autofliper == 1){autofliper = 0;}else{autofliper = 1;} delay(50); break;
-                
+                case 2: _OTA_UPDATE(); delay(50); break;
+
                 case 5:  _disp.clearBuffer(); _disp.drawStr(0, 20, "please reboot");  _disp.sendBuffer(); delay(5000); break;
                 case 6:  _disp.clearBuffer(); _disp.drawStr(0, 10, "powered by"); _disp.drawStr(0, 20, "FlexibleClockLibrary"); _disp.drawStr(0, 40, "github.com/arduhelp"); _disp.drawStr(0, 50, "/FlexibleClockLibrary"); _disp.sendBuffer(); delay(20000); break;
             }
@@ -164,8 +167,44 @@ void FlexibleClockLibrary::_BOOTSET() { clearDisp();
 }
 //-------------OTA-update--------------
 void FlexibleClockLibrary::_OTA_UPDATE() {
+   _disp.clearBuffer();
+   _disp.sendBuffer();
+   _disp.drawStr(0, 10, "warning! OTA update");
+   _disp.drawStr(0, 30, "hold OK for exit");
+   _disp.sendBuffer();
+   delay(2000);
+  // if(digitalRead(_OKpin) == _OKsig){return;}
+   _disp.clearBuffer();
+   _disp.sendBuffer();
+   delay(2000);
+//--------AI-code----------------------
+    const int PASSWORD_LENGTH = 9;
+    const char charset[] = "0123456789abcdef";
+    const int charsetSize = sizeof(charset) - 1;
+      char _password_ota1[PASSWORD_LENGTH + 1];
+      for (int i = 0; i < PASSWORD_LENGTH; i++) {
+        _password_ota1[i] = charset[random(0, charsetSize)];
+      }
+      _password_ota1[PASSWORD_LENGTH] = '\0';
+      _password_ota = strdup(_password_ota1);
+//---------end-AI-code-----------------
+    Serial.println(_password_ota);
+    _disp.drawStr(0, 10, "create AP please");
+    _disp.drawStr(0, 22, "ssid:");
+    _disp.drawStr(30, 22, _ssid_ota);
+    _disp.drawStr(0, 33, "pswd:");
+    _disp.drawStr(30, 33, _password_ota);
+    _disp.sendBuffer();
+    delay(30000);
+    _disp.clearBuffer();
+    _disp.sendBuffer();
+
   Serial.println();
   Serial.println("Booting Sketch...");
+
+  _disp.drawStr(0, 10, "Booting Sketch...");
+  _disp.sendBuffer();
+
   WiFi.mode(WIFI_AP_STA);
   WiFi.begin(_ssid_ota, _password_ota);
   if (WiFi.waitForConnectResult() == WL_CONNECTED) {
@@ -186,6 +225,10 @@ void FlexibleClockLibrary::_OTA_UPDATE() {
           Serial.setDebugOutput(true);
           WiFiUDP::stopAll();
           Serial.printf("Update: %s\n", upload.filename.c_str());
+            _disp.clearBuffer();
+            _disp.sendBuffer();
+            _disp.drawStr(0, 22, "Update...");
+            _disp.sendBuffer();
           uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
           if (!Update.begin(maxSketchSpace)) {  // start with max available size
             Update.printError(Serial);
@@ -196,6 +239,8 @@ void FlexibleClockLibrary::_OTA_UPDATE() {
           }
         } else if (upload.status == UPLOAD_FILE_END) {
           if (Update.end(true)) {  // true to set the size to the current progress
+              _disp.drawStr(0, 33, "Update Success:Rebooting...");
+              _disp.sendBuffer();
             Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
           } else {
             Update.printError(Serial);
@@ -206,11 +251,22 @@ void FlexibleClockLibrary::_OTA_UPDATE() {
       });
     server.begin();
     MDNS.addService("http", "tcp", 80);
-
+    Serial.print("Device IP: ");
+    Serial.println(WiFi.localIP());
     Serial.printf("Ready! Open http://%s.local in your browser\n", _host_ota);
+      _disp.drawStr(0, 44, "http://espfcl-webupdate.local");
+      _disp.drawStr(0, 55, WiFi.localIP().toString().c_str());
+      _disp.sendBuffer();
   } else {
     Serial.println("WiFi Failed");
+    _disp.drawStr(0, 22, "WiFi Failed");
+    _disp.sendBuffer();
   }
+
+while(true){
+  server.handleClient();
+  MDNS.update();
+}
 }
 
 
