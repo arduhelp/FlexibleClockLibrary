@@ -59,7 +59,7 @@ FlexibleClockLib - це бібліотека повна утиліт на фун
      - Активаційний сигнал кнопки **`ОК`**.  
      - Регіональний зсув часу UTC.  
      - NTP сервер (за потреби).
-```cpp
+- ```cpp
     FlexibleClockLibrary(U8G2& disp, OKpin, OKsig, analogButton_pin, ssidConfig, passwordConfig, IR_tx_pin, IR_rx_pin, mHz_tx_pin, vibroPin); 
 ```
 
