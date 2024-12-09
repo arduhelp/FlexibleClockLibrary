@@ -102,7 +102,5 @@ FlexibleClockLib - це бібліотека повна утиліт на фун
 
 [ ] Додати підтримку МГц-аналізу
 
-<span style="color:#008000;">Loading ...</span>
-
 
  > <span style="color:#008000;">Loading ...</span>
