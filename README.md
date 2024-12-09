@@ -1,5 +1,6 @@
 # FlexibleClockLib v1.1+
 ![GitHub Release](https://img.shields.io/github/v/release/arduhelp/FlexibleClockLibrary?style=flat-square) 
+
 ![platform](https://img.shields.io/badge/platform-esp32,_esp8266-blue) [![YouTube](https://img.shields.io/badge/YouTube-Subscribe-yellow)](https://www.youtube.com/channel/ваш_канал)
 
 хакерський годинник на базі esp8266 і esp32  👨‍💻
@@ -26,7 +27,7 @@ FlexibleClockLib - це бібліотека повна утиліт на фун
 - 💾 просте візуальне оновлення мікропрограми через OTA update (over-the-air)
 ---
 # 📥 Встановлення
- ## 1. Установка вручну через ZIP-файл
+ ### 1. Установка вручну через ZIP-файл
 
 1. **Завантажте бібліотеку:**
    - Перейдіть на [GitHub-репозиторій FlexibleClockLib](https://github.com/arduhelp/FlexibleClockLibrary) .
