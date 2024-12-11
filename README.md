@@ -41,8 +41,9 @@ FlexibleClockLib - це бібліотека повна утиліт на фун
 
 1. **Завантажте бібліотеку:**
    - Перейдіть на [GitHub-репозиторій FlexibleClockLib](https://github.com/arduhelp/FlexibleClockLibrary) .
-   - Натисніть **Code → Download ZIP**, щоб завантажити архів бібліотеки.
-   - Або завантажте останній реліз з сторінки **.zip or .bin**
+   - *Code → Releases → [Обраний реліз]*
+   - *Assets → [Завантажити файл]*
+   - Завантажте останній реліз з сторінки **.zip or .bin** .
 
 2. **Додайте бібліотеку до Arduino IDE:**
    - У меню IDE оберіть:  
