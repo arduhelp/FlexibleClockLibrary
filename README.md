@@ -41,7 +41,7 @@ FlexibleClockLib - це бібліотека повна утиліт на фун
 
 1. **Завантажте бібліотеку:**
    - Перейдіть на [GitHub-репозиторій FlexibleClockLib](https://github.com/arduhelp/FlexibleClockLibrary) .
-   - `Code → Releases → [Обраний реліз]`
+   - `Releases → [Обраний реліз]`
    - `Assets → [Завантажити файл]`
    - Завантажте останній реліз з сторінки **.zip or .bin** .
 
