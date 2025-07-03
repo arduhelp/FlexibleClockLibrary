@@ -27,7 +27,7 @@ Flexible Clock Library (FCL os) - це прошивка з набором інс
 
 # Get started
 
-## 1. Додати підтримку плат в ідє
+## 1. Додати підтримку плат в ide
 
 > ESP32
 
@@ -38,7 +38,7 @@ Flexible Clock Library (FCL os) - це прошивка з набором інс
 3. В полі "Additional Board URLs" встав:
 
 ```
-[[https://espressif.github.io/arduino-esp32/package_esp32_index.json](https://espressif.github.io/arduino-esp32/package_esp32_index.json)](https://espressif.github.io/arduino-esp32/package_esp32_index.json](https://espressif.github.io/arduino-esp32/package_esp32_index.json))
+https://espressif.github.io/arduino-esp32/package_esp32_index.json
 ```
 
 4. Перейди до `Tools > Board > Board Manager`
@@ -54,7 +54,7 @@ Flexible Clock Library (FCL os) - це прошивка з набором інс
 2. Додай ще одну URL:
 
 ```
-[[http://arduino.esp8266.com/stable/package_esp8266com_index.json](http://arduino.esp8266.com/stable/package_esp8266com_index.json)](http://arduino.esp8266.com/stable/package_esp8266com_index.json](http://arduino.esp8266.com/stable/package_esp8266com_index.json))
+http://arduino.esp8266.com/stable/package_esp8266com_index.json
 ```
 
 3. Перейди в `Tools > Board > Board Manager`
@@ -67,7 +67,7 @@ Flexible Clock Library (FCL os) - це прошивка з набором інс
 
 1. Перейди на `GitHub репозиторій > релізи`:
 
-[[https://github.com/arduhelp/FlexibleClockLibrary](https://github.com/arduhelp/FlexibleClockLibrary)](https://github.com/arduhelp/FlexibleClockLibrary](https://github.com/arduhelp/FlexibleClockLibrary))
+https://github.com/arduhelp/FlexibleClockLibrary
 
 2. Натисни `Code > Download ZIP` або завантаж .bin файл `релізи > ресурс > fcl.bin`
 
@@ -75,7 +75,7 @@ Flexible Clock Library (FCL os) - це прошивка з набором інс
 
 1. В Arduino IDE відкрий `Sketch > Include Library > Add .ZIP Library...`
 
-2. Вибери [FCL-OS.zip](http://FCL-OS.zip) або вручну додану папку
+2. Вибери FlexibleClockLib.zip або вручну додану папку
 
 ## 3. **Завантажте базову прошивку**
 
@@ -83,7 +83,12 @@ Flexible Clock Library (FCL os) - це прошивка з набором інс
 
 2. Відкрий _fcl-sketch.ino_ або інший демо-проект
 
-3. Завантаж на свою плату
+3. підлаштуйте власні піни
+```
+pins
+```
+
+4. Завантаж на свою плату
 
 ---
 
