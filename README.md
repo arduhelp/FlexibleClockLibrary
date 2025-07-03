@@ -69,7 +69,7 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 
 https://github.com/arduhelp/FlexibleClockLibrary/releases
 
-2. Натисни `Code > Download ZIP` або завантаж .bin файл `релізи > ресурс > fcl.bin`
+2. Натисни `Code > Download ZIP` або завантаж .bin файл `releases > assets > fcl.bin`
 
 3. Підключи бібліотеку
 
