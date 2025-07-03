@@ -1,6 +1,6 @@
-# FlexibleClockLibrary
-## v1.1+
+# FlexibleClockLibrary v1.1+
  [українською](README.md) / [english](README_EN.md)
+---
 ![GitHub Release](https://img.shields.io/github/v/release/arduhelp/FlexibleClockLibrary?style=flat-square) 
 ![platform](https://img.shields.io/badge/platform-esp32,_esp8266-blue) [![YouTube](https://img.shields.io/badge/YouTube-Video-gold)](https://www.youtube.com/channel/ваш_канал)
 
