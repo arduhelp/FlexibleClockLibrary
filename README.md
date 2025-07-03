@@ -63,7 +63,7 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 
 5.Оберіть цю плату `wemos d1 mini`
 
-##2. **Встановити бібліотеку**
+## 2. **Встановити бібліотеку**
 
 1. Перейди на `GitHub репозиторій > релізи`:
 
