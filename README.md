@@ -67,7 +67,7 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 
 1. Перейди на `GitHub репозиторій > релізи`:
 
-https://github.com/arduhelp/FlexibleClockLibrary
+https://github.com/arduhelp/FlexibleClockLibrary/releases
 
 2. Натисни `Code > Download ZIP` або завантаж .bin файл `релізи > ресурс > fcl.bin`
 
