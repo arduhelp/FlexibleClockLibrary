@@ -61,7 +61,7 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 
 4. Знайди ESP8266 by ESP8266 Community та встанови
 
-5.Оберіть цю плату `wemos d1 mini`
+5. Оберіть цю плату `wemos d1 mini`
 
 ## 2. **Встановити бібліотеку**
 
@@ -84,8 +84,8 @@ https://github.com/arduhelp/FlexibleClockLibrary
 2. Відкрий _fcl-sketch.ino_ або інший демо-проект
 
 3. підлаштуйте власні піни
-```
-pins
+```cpp
+FlexibleClockLibrary(U8G2& disp, OKpin, OKsig, analogButton_ pin, ssidConfig, passwordConfig, IR_tx_pin, IR_rx_pin, mHz_tx_pin, vibroPin);
 ```
 
 4. Завантаж на свою плату
