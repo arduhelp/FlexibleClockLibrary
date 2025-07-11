@@ -61,7 +61,7 @@ http://arduino.esp8266.com/stable/package_esp8266com_index.json
 
 4. Знайди ESP8266 by ESP8266 Community та встанови
 
-5. Оберіть цю плату `wemos d1 mini`
+5. Оберіть цю плату `LOLIN(WEMOS) D1 R2 & mini`
 
 ## 2. **Встановити бібліотеку**
 
