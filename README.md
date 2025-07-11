@@ -29,7 +29,7 @@ Flexible Clock Library (FCL os) - це прошивка з набором інс
 
 ## 1. Додати підтримку плат в ide
 
-> ESP32
+> ESP32 --------------------
 
 1. Відкрий Arduino IDE
 
@@ -47,7 +47,7 @@ https://espressif.github.io/arduino-esp32/package_esp32_index.json
 
 6. Оберіть цю плату
 
-> ESP8266
+> ESP8266 --------------------
 
 1. Зайди в `File > Preferences`
 
