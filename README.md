@@ -51,6 +51,8 @@ https://espressif.github.io/arduino-esp32/package_esp32_index.json
 
 > ESP8266 --------------------
 
+❗ НЕ підтримється вище v1.1s2 ❗
+
 1. Зайди в `File > Preferences`
 
 2. Додай ще одну URL:
