@@ -46,14 +46,20 @@ const unsigned char FlexibleClockLibrary::remote_bitmap_remote [] PROGMEM = {
 
 FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OKsig, uint8_t analogButton,
                                            const char* ssidConfig, const char* passwordConfig,
-                                           uint8_t IR_tx, uint8_t IR_rx, uint8_t mHz_tx, uint8_t vibroPin)
+                                           uint8_t IR_tx, uint8_t IR_rx, uint8_t mHz_tx, uint8_t buzzerPin)
     : _disp(disp), _OKpin(OKpin), _OKsig(OKsig), _analogButton(analogButton), _ssidConfig(ssidConfig), 
       _passwordConfig(passwordConfig), _IR_tx(IR_tx), _IR_rx(IR_rx), 
-      _mHz_tx(mHz_tx), _vibroPin(vibroPin), server(80) {
+      _mHz_tx(mHz_tx), _buzzerPin(buzzerPin), server(80) {
     // Ініціалізація змінних класу
 }
- 
 
+
+unsigned long cur_milllis = 0;
+unsigned long last_tick = 0;
+
+unsigned int lhour = 0;
+unsigned int lmin = 0;
+unsigned int lsec = 0;
 
 
 const char* FlexibleClockLibrary::_BOOTSETItems[7] = { "autofliper", "OTA update", "Option3","utc+", "Exit", "info" ,"" }; // Ініціалізація статичного масиву
@@ -77,23 +83,28 @@ void FlexibleClockLibrary::begin() {
     Serial.println("loading... serial");
     _disp.begin();
     Serial.println("loading... display");
+    #ifdef ESP32
+    //IrSender.begin(_IR_tx);
+    //IrReceiver.begin(_IR_rx, ENABLE_LED_FEEDBACK);
+    Serial.println("loading... ir");
+    #endif
     clearDisp();
-    _disp.setFont(u8g2_font_t0_11_tr);
+    _disp.setFont(u8g2_font_6x10_tf);
     Serial.print(digitalRead(_OKpin));
     uint8_t taskbar_show = 1;
-     delay(200);
-    if(digitalRead(_OKpin) == _OKsig) {
-        _BOOTSET();
-    }
     
     wifiType = 3;
     _disp.clearBuffer(); 
      _disp.setFont(u8g2_font_6x10_tf);
      _disp.drawStr(5, 54, "FlexibleClockLib"); 
-     _disp.drawStr(80, 64, "v1.1s0"); 
+     _disp.drawStr(80, 64, "v1.1s9"); 
      int ClockUpdateMillis = 1;
      _disp.sendBuffer();
-     delay(2000);
+     delay(1000);
+     if(digitalRead(_OKpin) == _OKsig) {
+        _BOOTSET();
+     }
+     delay(1000);
      _disp.clearBuffer(); // Очищаємо буфер дисплея
      _disp.sendBuffer();  // Виводимо змінений (порожній) буфер на екран
         
@@ -102,9 +113,9 @@ void FlexibleClockLibrary::begin() {
 
 
 
-//------------------------------------- ┳┓┏┓┏┓┏┳┓┏┓┏┓┏┳┓
-//-----BOOTSET------------------------- ┣┫┃┃┃┃ ┃ ┗┓┣  ┃ 
-//------------------------------------- ┻┛┗┛┗┛ ┻ ┗┛┗┛ ┻ 
+//------------------------------------- ┳┓ ┏┓ ┏┓ ┏┳┓ ┏┓ ┏┓ ┏┳┓
+//-----BOOTSET------------------------- ┣┫ ┃┃ ┃┃  ┃  ┗┓ ┣   ┃ 
+//------------------------------------- ┻┛ ┗┛ ┗┛  ┻  ┗┛ ┗┛  ┻ 
 
 
 // BOOTSETTINGS
@@ -112,8 +123,8 @@ uint8_t FlexibleClockLibrary::_BOOTSETPointer = 1;
 
 void FlexibleClockLibrary::_BOOTSET() { clearDisp();
     unsigned long lastTime = 0;
-    delay(2000);
-    _disp.setFont(u8g2_font_t0_11_tr);
+    delay(5000);
+    _disp.setFont(u8g2_font_6x10_tf);
  for (int loopboot = 0; loopboot < 30000; loopboot++) { 
    // clearDisp();
     
@@ -153,7 +164,7 @@ void FlexibleClockLibrary::_BOOTSET() { clearDisp();
                 case 1: if(autofliper == 1){autofliper = 0;}else{autofliper = 1;} delay(50); break;
                 case 2: _OTA_UPDATE(); delay(50); break;
 
-                case 5:  _disp.clearBuffer(); _disp.drawStr(0, 20, "please reboot");  _disp.sendBuffer(); delay(5000); break;
+                case 5:  _disp.clearBuffer(); _disp.drawStr(0, 20, "3sec.. reboot");  _disp.sendBuffer(); delay(3000); ESP.restart(); break;
                 case 6:  _disp.clearBuffer(); _disp.drawStr(0, 10, "powered by"); _disp.drawStr(0, 20, "FlexibleClockLibrary"); _disp.drawStr(0, 40, "github.com/arduhelp"); _disp.drawStr(0, 50, "/FlexibleClockLibrary"); _disp.sendBuffer(); delay(20000); break;
             }
         }
@@ -173,13 +184,13 @@ void FlexibleClockLibrary::_OTA_UPDATE() {
    _disp.drawStr(0, 30, "hold OK for exit");
    _disp.sendBuffer();
    delay(2000);
-  // if(digitalRead(_OKpin) == _OKsig){return;}
+       if(digitalRead(_OKpin) == _OKsig){return;}
    _disp.clearBuffer();
    _disp.sendBuffer();
    delay(2000);
 //--------AI-code----------------------
     const int PASSWORD_LENGTH = 9;
-    const char charset[] = "0123456789abcdef";
+    const char charset[] = "123456789abcdef";
     const int charsetSize = sizeof(charset) - 1;
       char _password_ota1[PASSWORD_LENGTH + 1];
       for (int i = 0; i < PASSWORD_LENGTH; i++) {
@@ -223,7 +234,10 @@ void FlexibleClockLibrary::_OTA_UPDATE() {
         HTTPUpload& upload = server.upload();
         if (upload.status == UPLOAD_FILE_START) {
           Serial.setDebugOutput(true);
-          WiFiUDP::stopAll();
+          #ifdef ESP8266
+           WiFiUDP::stopAll();
+          #endif
+
           Serial.printf("Update: %s\n", upload.filename.c_str());
             _disp.clearBuffer();
             _disp.sendBuffer();
@@ -265,7 +279,10 @@ void FlexibleClockLibrary::_OTA_UPDATE() {
 
 while(true){
   server.handleClient();
-  MDNS.update();
+  #ifdef ESP8266
+   MDNS.update();
+  #endif
+
 }
 }
 
@@ -279,7 +296,7 @@ while(true){
 void FlexibleClockLibrary::getErr(const char* errMsg) {
     clearDisp();
     _disp.clearBuffer(); // clear the internal memory
-    _disp.setFont(u8g2_font_ncenB08_tr); // choose a suitable font
+    _disp.setFont(u8g2_font_6x10_tf); // choose a suitable font
     _disp.drawStr(0, 10, "Err! please reboot."); // write something to the internal memory
     Serial.println("Err! please reboot.");
     _disp.drawStr(0, 20, errMsg); // display error message
@@ -308,6 +325,7 @@ while(true){
  _disp.clearBuffer(); 
  _disp.setFont(u8g2_font_t0_22b_tf); // Вибір шрифту
     while(true){
+      delay(20);
  char timeBuffer[6];  // Буфер для збереження відформатованого часу
 //    Serial.println(taskbar_show);
       // Малюємо фон, якщо передано бітмап
@@ -356,48 +374,29 @@ while(true){
 }}
 
     int UTC = 0; //your time zone (utc)
-    
 
-unsigned long previousMillis = 0; // Для відстеження часу
 void FlexibleClockLibrary::ClockUpdate(){
-    //gptcode 
- unsigned long currentMillis = millis(); // Поточний час у мілісекундах
 
-  // Обчислюємо, скільки часу минуло
-  unsigned long elapsedMillis = currentMillis - previousMillis;
-  if (elapsedMillis >= 60000) { // Якщо пройшла хоча б одна хвилина
-    previousMillis = currentMillis - (elapsedMillis % 60000); // Зберігаємо залишок
-
-    int elapsedMinutes = elapsedMillis / 60000; // Переводимо у хвилини
-    currentMinutes += elapsedMinutes; // Додаємо до хвилин
-
-    // Перевіряємо, чи потрібно збільшити години
-    while (currentMinutes >= 60) {
-      currentMinutes -= 60;
-      currentHours++;
-      if (currentHours >= 24) {
-        currentHours = 0; // Переходимо до наступної доби
-      }
+  //--Clock
+  cur_milllis = millis();
+  if(cur_milllis - last_tick >= 1000){
+    lsec = lsec + 1;
+    if(lsec >= 60){
+      lmin = lmin +1;
+      lsec = 0;
     }
-
-    // Додаємо зсув UTC
-    //currentHours += UTC;
-    if (currentHours >= 24) {
-      currentHours -= 24; // Коригуємо перехід через добу
-    } else if (currentHours < 0) {
-      currentHours += 24; // Коригуємо від'ємний час
+    if(lmin >= 60){
+      lhour = lhour +1;
+      lmin = 0;
     }
+    if(lhour >= 24){
+      lhour = 0;
+    }
+    last_tick = cur_milllis;
   }
 
-  // Відображаємо час
-  Serial.print("Time: ");
-  if (currentHours < 10) Serial.print("0"); // Додаємо 0 перед годинами
-  Serial.print(currentHours);
-  Serial.print(":");
-  if (currentMinutes < 10) Serial.print("0"); // Додаємо 0 перед хвилинами
-  Serial.println(currentMinutes);
-  //end
-   return;
+  currentHours = lhour;
+  currentMinutes = lmin;
 }
 
 
@@ -409,10 +408,10 @@ void FlexibleClockLibrary::ClockUpdate(){
 
 
 void FlexibleClockLibrary::drawLines(const char* lineText) {
-    //gpt code
+    //AI code
    // clearDisp(); // Очищаємо екран перед виведенням
 
-    _disp.setFont(u8g2_font_ncenB08_tr); // Встановлюємо шрифт
+    _disp.setFont(u8g2_font_6x10_tf); // Встановлюємо шрифт
     int x = 10; // Початкова координата X
     int y = 10; // Початкова координата Y
     int lineHeight = 12; // Висота рядка
@@ -435,7 +434,7 @@ void FlexibleClockLibrary::drawLines(const char* lineText) {
     }
 
     _disp.sendBuffer(); // Оновлюємо екран
-    //gpt code end
+    //AI code end
    
 }
 
@@ -516,11 +515,11 @@ void FlexibleClockLibrary::wifi_connect(const char* WIFI_SSID1, const char* WIFI
      if (digitalRead(_OKpin) == _OKsig) {
         errType = 2;
         taskbar_draw(8);
-        //gpt code
+        //AI code
       delay(1000); // Затримка для запобігання повторенню натискань
       if (digitalRead(_OKpin) == _OKsig) { // Якщо кнопку ще тримають, вийти з циклу
        break; }}
-       //end gpt code
+       //end AI code
   }
   attemptCounter = 0;
   if(WiFi.status() == WL_CONNECTED){
@@ -627,6 +626,19 @@ kamniY+=8;
 }}
 
 //---------------
-//--button-------
+//--test-------
 //---------------
-
+void FlexibleClockLibrary::buzzertest(){
+  delay(500);
+  tone(_buzzerPin, 800, 200);
+  delay(250);
+  tone(_buzzerPin, 600, 200);
+  delay(250);
+  tone(_buzzerPin, 800, 200);
+  delay(250);
+  noTone(_buzzerPin);
+  delay(250);
+  tone(_buzzerPin, 400, 200);
+  delay(250);
+  noTone(_buzzerPin);
+}
