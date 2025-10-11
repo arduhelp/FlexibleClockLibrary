@@ -1,7 +1,7 @@
 #ifndef FLEXIBLECLOCKLIBRARY_h
 #define FLEXIBLECLOCKLIBRARY_h
 
-#include <avr/pgmspace.h>
+
 #include <Arduino.h>
 #include <U8g2lib.h>
 
@@ -11,13 +11,20 @@
     #include <WiFi.h>
     #include <WiFiClient.h>
     #include <WiFiAP.h>
-  //  #include <WebServer.h>
+    #include <WebServer.h>
+    #include <pgmspace.h>
+    #include <ESPmDNS.h>
+    #include <Update.h>
+    //#include <IRremote.hpp>
+    
   //  WebServer server(80);
 #elif defined(ESP8266)
     #include <ESP8266WiFi.h>
     #include <WiFiClient.h>
     #include <ESP8266WebServer.h>
     #include <ESP8266mDNS.h>
+    #include <avr/pgmspace.h>
+    #include <Updater.h>
    // #include <ESP8266WebServer.h>
   //  ESP8266WebServer server(80);
 #else
@@ -27,8 +34,13 @@
 class FlexibleClockLibrary{
 public:
     // Constructor
-    FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OKsig, uint8_t analogButton, const char* ssidConfig, const char* passwordConfig, uint8_t IR_tx, uint8_t IR_rx, uint8_t mHz_tx, uint8_t vibroPin);
-    ESP8266WebServer server;
+    FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OKsig, uint8_t analogButton, const char* ssidConfig, const char* passwordConfig, uint8_t IR_tx, uint8_t IR_rx, uint8_t mHz_tx, uint8_t buzzerPin);
+    #ifdef ESP32
+     WebServer server;
+    #elif defined(ESP8266)
+     ESP8266WebServer server;
+    #endif
+
 
 
 
@@ -79,6 +91,8 @@ public:
     void drawLines(const char* lineText);
     //gamegonki
     void gamegonki();
+    //test
+    void buzzertest();
     
 
     // Variables
@@ -88,6 +102,8 @@ public:
   
     int UTC = 0; //your time zone (utc)
     
+
+
 
     int currentHours = 0;         // Поточні години
     int currentMinutes = 0;       // Поточні хвилини
@@ -111,7 +127,7 @@ private:
     uint8_t _IR_tx; // IR TX pin
     uint8_t _IR_rx; // IR RX pin
     uint8_t _mHz_tx; // MHz TX pin
-    uint8_t _vibroPin; // Vibration motor pin
+    uint8_t _buzzerPin; // buzzer or vibro pin
 
     static const char* _host_ota;
     static const char* _ssid_ota;
