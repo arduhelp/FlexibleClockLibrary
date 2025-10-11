@@ -45,7 +45,7 @@ https://espressif.github.io/arduino-esp32/package_esp32_index.json
 7. Перейди та Обери `Partition Scheme > "Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)"`
 
 > For ESP8266
-
+❗ Will NOT be supported above v1.1s2 ❗
 1. Go to `File > Preferences`  
 2. Add another URL:
 
