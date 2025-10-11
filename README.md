@@ -45,7 +45,9 @@ https://espressif.github.io/arduino-esp32/package_esp32_index.json
 
 5. Знайди ESP32 by Espressif та встанови
 
-6. Оберіть цю плату
+6. Оберіть цю плату `ESP32C3 Dev Module`
+   
+7. Перейди та Обери `Partition Scheme > "Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)"`
 
 > ESP8266 --------------------
 
