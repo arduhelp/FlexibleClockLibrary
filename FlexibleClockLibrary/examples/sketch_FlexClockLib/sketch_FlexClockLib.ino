@@ -29,13 +29,15 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 byte oksig = 0;
 #define okpin 10
-#define irtx 7
-#define irrx 0
+#define irtx 1
+#define irrx 2
 
-decode_type_t lastProtocol;
-uint32_t lastData = 0;
-uint16_t rawData[RAW_BUFFER_LENGTH];
-uint16_t rawLen = 0;
+ 
+  uint16_t rawBuf[200];
+  decode_type_t lastProtocol = UNKNOWN;  // Протокол останнього сигналу
+  uint32_t lastData = 0;                 // Дані сигналу
+  uint16_t rawLen = 0;                   // Довжина "сирих" даних, якщо треба
+
 
 void scan_plus();   
 void pmenuwifi();
@@ -243,8 +245,8 @@ const unsigned char wallpaper_bitmap_gear [] PROGMEM = {
 
 const char* MenuItems[9] = { "clock", "wifi", "IR", "MHz", "games", "settings" , "server", "info", "" }; // Ініціалізація статичного масиву
 const char* WiFiMenuItems[7] = { "connect", "disable", "AP", "scan+", "prycoly", "back to menu" , "" };
-const char* SettingsMenuItems[7] = { "wallpaper", "SETclock", "find phone", "system info", "back to menu", "reboot" , "test" };
-const char* IRMenuItems[7] = { "ir rx", "ir tx(raw)", "ir rx(raw)", "scan", "back to menu", "" ,"" };
+const char* SettingsMenuItems[7] = { "GPIO", "SETclock", "find phone", "system info", "back to menu", "reboot" , "test" };
+const char* IRMenuItems[7] = { "ir rx", "ir rx(raw)", "ir tx(raw)", "scan", "back to menu", "" ,"" };
 
 
 
@@ -747,10 +749,10 @@ return;
       //u8g2.clearBuffer(); // Очищення буфера дисплея
 
       // Виведення пунктів меню
-      switch (parampam) {//{ "ir rx", "ir tx(raw)", "ir rx(raw)", "scan", "exit", "" ,"" };
+      switch (parampam) {//{ "ir rx", "ir rx(raw)", "ir tx(raw)", "scan", "exit", "" ,"" };
         case 0: // rx
           u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_raw_rx);
+          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_rx);
           u8g2.drawStr(30, 22, IRMenuItems[5]);
           u8g2.drawStr(30, 40, IRMenuItems[parampam]);
           u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
@@ -761,20 +763,7 @@ return;
           //u8g2.sendBuffer();
           break;
 
-        case 1: // tx
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_tx);
-          u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, IRMenuItems[parampam]);
-          u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            delay(1000);
-            irtxF();
-          }
-          //u8g2.sendBuffer();
-          break;
-
-        case 2: // rx raw
+        case 1: // rx raw
           u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
           u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_raw_rx);
           u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
@@ -787,6 +776,19 @@ return;
           //u8g2.sendBuffer();
           break;
 
+        case 2: // tx
+          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_raw_rx);
+          u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
+          u8g2.drawStr(30, 40, IRMenuItems[parampam]);
+          u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
+          if (digitalRead(okpin) == oksig) {
+            delay(1000);
+            irtxF();
+          }
+          //u8g2.sendBuffer();
+          break;
+
         case 3: // scan
           u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
           u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_tx);
@@ -794,7 +796,7 @@ return;
           u8g2.drawStr(30, 40, IRMenuItems[parampam]);
           u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
           if (digitalRead(okpin) == oksig) {
-            scan_plus();
+            //scan_plus();
           }
           //u8g2.sendBuffer();
           break;
@@ -850,79 +852,188 @@ return;
 
 
   //other-------------------------------
-//--- ai code ---
+
 void irrxF() {
-   u8g2.setFont(u8g2_font_6x10_tf);
- while(true){
-  if(digitalRead(okpin) == oksig) {return;}
-  
-  if (IrReceiver.decode()) { // Новий спосіб декодування
-    Serial.print(F("Protocol: "));
-    Serial.println(IrReceiver.decodedIRData.protocol);
-    Serial.print(F("Data: 0x"));
-    Serial.println(IrReceiver.decodedIRData.decodedRawData, HEX);
+  while(true){
+    delay(10);
+    if (IrReceiver.decode()) {
 
-    u8g2.clearBuffer();
-    u8g2.setCursor(0, 12);
-    u8g2.print(F("Protocol: "));
-    u8g2.println(IrReceiver.decodedIRData.protocol);
-    u8g2.setCursor(0, 26);
-    u8g2.print(F("Data: 0x"));
-    u8g2.println(IrReceiver.decodedIRData.decodedRawData, HEX);
-    u8g2.sendBuffer();
+      uint32_t irCode = IrReceiver.decodedIRData.decodedRawData;
 
+      u8g2.clearBuffer();
+      u8g2.setFont(u8g2_font_6x10_tf);
 
-    // Зберігаємо
-    lastProtocol = IrReceiver.decodedIRData.protocol;
-    lastData = IrReceiver.decodedIRData.decodedRawData;
-    delay(100);
-
-    IrReceiver.resume(); // Готовий до наступного сигналу
+      u8g2.drawStr(0, 12, "IR code:");
+      char buf[20];
+      sprintf(buf, "0x%08lX", irCode);
+      u8g2.drawStr(0, 28, buf);
+      u8g2.sendBuffer();
+      IrReceiver.resume();
+     }
+     if (digitalRead(okpin) == oksig) {
+      // очищаємо повідомлення
+      u8g2.clearBuffer();
+      u8g2.sendBuffer();
+      return;
+    }
+    
+    }
   }
-}
-}
+//--- ai code ---
 void irrxRawF() {
-  
+  // Ініціалізуємо приймач (не зашкодить, навіть якщо вже ініціалізовано)
+ // IrReceiver.begin();
+  u8g2.setFont(u8g2_font_6x10_tf);
+
+  // Екран: очікуємо сигнал
+  u8g2.clearBuffer();
+  u8g2.drawStr(0, 12, "IR receive - waiting...");
+  u8g2.drawStr(0, 28, "Press OK to exit");
+  u8g2.sendBuffer();
+
+  // цикл прийому
+  while (true) {
+    // вихід по кнопці OK
+    if (digitalRead(okpin) == oksig) {
+      // очищаємо повідомлення
+      u8g2.clearBuffer();
+      u8g2.sendBuffer();
+      return;
+    }
+
+    // якщо прийшов код
+    if (IrReceiver.decode()) {
+      // зберігаємо базову інформацію
+      auto &d = IrReceiver.decodedIRData;
+      lastProtocol = d.protocol;                // enum/protocol
+      lastData = d.decodedRawData;                        // 32-bit дані (команда/код)
+      rawLen = 0;                                         // якщо не маємо raw, лишаємо 0
+
+      // Спроба зчитати сирі імпульси (якщо вони є / бібліотека дозволяє)
+      // Нотатка: API бібліотек IR може відрізнятися; якщо у тебе є доступ до сирих даних,
+      // сюди можна скопіювати їх у rawBuf[] і задати rawLen.
+      // Наприклад (псевдокод, працюватиме не у всіх версіях):
+      // if (d.protocol == UNKNOWN && d.numberOfBits==0) { copy raw pulses... rawLen = ... }
+
+      // Формуємо рядок для відображення
+      char buf[64];
+      // показ назви протоколу (людський текст)
+      const char *pname = "UNKNOWN";
+      switch (d.protocol) {
+        case NEC:     pname = "NEC"; break;
+        case SONY:    pname = "SONY"; break;
+        case RC5:     pname = "RC5"; break;
+        case RC6:     pname = "RC6"; break;
+        case SAMSUNG: pname = "SAMSUNG"; break;
+        case LG:      pname = "LG"; break;
+        // додай інші протоколи, якщо потрібно
+        default:      pname = "OTHER/RAW"; break;
+      }
+
+      // Відображення на дисплеї
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 12);
+      u8g2.print("Protocol: ");
+      u8g2.print(pname);
+
+      u8g2.setCursor(0, 28);
+      snprintf(buf, sizeof(buf), "Data: 0x%08lX", (unsigned long)lastData);
+      u8g2.print(buf);
+
+      // Якщо є сирі дані, відобразимо кількість
+      if (rawLen > 0) {
+        snprintf(buf, sizeof(buf), "Raw len: %d", rawLen);
+        u8g2.setCursor(0, 44);
+        u8g2.print(buf);
+      } else {
+        u8g2.setCursor(0, 44);
+        u8g2.print("Raw: none");
+      }
+
+      u8g2.sendBuffer();
+
+      // Збережено — готуємось до наступного сигналу
+      IrReceiver.resume();
+      delay(80); // короткий інтервал, щоб не дублювати (не обов'язково)
+    } // if decode
+
+    // трохи "полегшимо" цикл
+    delay(5);
+  } // while
 }
 
 void irtxF() {
+  byte sended = false;
+  // перевірка кнопки OK: якщо натиснута — не надсилати
   if (digitalRead(okpin) == oksig) return;
 
-  u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_6x10_tf);
+  u8g2.clearBuffer();
   u8g2.drawStr(0, 12, "Sending...");
+  u8g2.sendBuffer();
+  if(sended == false){
+  // якщо немає даних
+  if (lastProtocol == 0 && lastData == 0 && rawLen == 0) {
+    u8g2.clearBuffer();
+    u8g2.drawStr(0, 12, "No data stored");
+    u8g2.sendBuffer();
+    delay(300);
+    return;
+  }
 
+  // Спроба надіслати згідно з protocol
   switch (lastProtocol) {
     case NEC:
+     // IrSender.begin();
       IrSender.sendNEC(lastData, 32);
+      sended = true;
       break;
     case SONY:
+     // IrSender.begin();
+      // у Sony зазвичай 12 або 15 біт — бібліотека інформує по кількості бітів, але ми використовуємо 12 як у твому прикладі
       IrSender.sendSony(lastData, 12);
+      sended = true;
       break;
     case SAMSUNG:
+     // IrSender.begin();
+      // Багато реалізацій Samsung використовують 32 біта
      // IrSender.sendSamsung(lastData, 32);
       break;
     case LG:
+     // IrSender.begin();
       IrSender.sendLG(lastData, 28);
+      sended = true;
       break;
     case RC5:
+     // IrSender.begin();
       IrSender.sendRC5(lastData, 12);
+      sended = true;
       break;
     case RC6:
+     // IrSender.begin();
       IrSender.sendRC6(lastData, 20);
+      sended = true;
       break;
     default:
-      if (rawLen > 0)
-        delay(10);
-      else {
-        u8g2.drawStr(0, 28, "No data stored");
+      // Якщо маємо сирі імпульси, можна відтворити їх вручну (необхідно мати rawBuf і rawLen)
+      if (rawLen > 0) {
+     //   IrSender.begin();
+        // приклад: IrSender.sendRaw(rawBuf, rawLen, frequency);
+        // Але точний виклик залежить від версії бібліотеки IrSender.
+        // Якщо в тебе є rawBuf[] та частота, тут можна викликати sendRaw.
+      } else {
+        u8g2.clearBuffer();
+        u8g2.drawStr(0, 12, "Unsupported proto");
         u8g2.sendBuffer();
         return;
       }
   }
-
-  u8g2.drawStr(0, 28, "Sent!");
+}else{return;}
+  // Підтвердження
+  u8g2.clearBuffer();
+  u8g2.drawStr(0, 12, "Sent!");
   u8g2.sendBuffer();
+  delay(120);
 }
 
 
@@ -935,6 +1046,7 @@ void irtxF() {
     u8g2.setCursor(0, 52);
     u8g2.print("rescan/exit");
     u8g2.sendBuffer();
+    delay(200);
   }
   void scan_plus() {
   u8g2.setFont(u8g2_font_6x10_tf);
@@ -1082,6 +1194,10 @@ void sourapple() {
   delay(100);
   NimBLEDevice::init("");
   delay(500);
+  u8g2.setCursor(0, 52);
+  u8g2.print("sourapple");
+  u8g2.sendBuffer();
+  delay(200);
 
   esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9);
   esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_P9);
