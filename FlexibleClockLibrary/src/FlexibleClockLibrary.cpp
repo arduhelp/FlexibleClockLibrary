@@ -1,6 +1,20 @@
 #include "FlexibleClockLibrary.h"
 #include <Arduino.h>
 #include <U8g2lib.h>
+//begin-bootset-fonts
+//u8g2_font_t0_11_tr
+//u8g2_font_6x10_tf
+
+//clock-font
+//u8g2_font_t0_22b_tf
+
+//taskbar
+//u8g2_font_6x10_tf
+//u8g2_font_6x10_tf
+
+//menu
+//u8g2_font_crox1hb_tf
+
 
 
  const unsigned char FlexibleClockLibrary::_err_bitmap_err [] PROGMEM = {
@@ -97,7 +111,7 @@ void FlexibleClockLibrary::begin() {
     _disp.clearBuffer(); 
      _disp.setFont(u8g2_font_6x10_tf);
      _disp.drawStr(5, 54, "FlexibleClockLib"); 
-     _disp.drawStr(80, 64, "v1.1s9"); 
+     _disp.drawStr(80, 64, "v1.1s10"); 
      int ClockUpdateMillis = 1;
      _disp.sendBuffer();
      delay(1000);
@@ -362,7 +376,7 @@ while(true){
                      lastActivityTime = millis();
                      displayOn = true;
                       /*return;*/  break;  }}
-            delay(100);
+            delay(1500);
         }
     }
 
