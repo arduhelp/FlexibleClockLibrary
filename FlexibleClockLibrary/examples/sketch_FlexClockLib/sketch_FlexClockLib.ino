@@ -36,6 +36,7 @@ byte oksig = 0;
   uint16_t rawBuf[200];
   decode_type_t lastProtocol = UNKNOWN;  // Протокол останнього сигналу
   uint32_t lastData = 0;                 // Дані сигналу
+  uint8_t lastBits = 0;                 //крайні біти
   uint16_t rawLen = 0;                   // Довжина "сирих" даних, якщо треба
 
 
@@ -45,6 +46,7 @@ void pmenuir();
 void pmenumhz();
 void pmenugames();
 void pmenuscanplus();
+void sourapple();
 
 
 char clockposX = 70;
@@ -881,160 +883,150 @@ void irrxF() {
   }
 //--- ai code ---
 void irrxRawF() {
-  // Ініціалізуємо приймач (не зашкодить, навіть якщо вже ініціалізовано)
- // IrReceiver.begin();
   u8g2.setFont(u8g2_font_6x10_tf);
 
-  // Екран: очікуємо сигнал
   u8g2.clearBuffer();
-  u8g2.drawStr(0, 12, "IR receive - waiting...");
+  u8g2.drawStr(0, 12, "IR receive");
   u8g2.drawStr(0, 28, "Press OK to exit");
   u8g2.sendBuffer();
 
-  // цикл прийому
-  while (true) {
-    // вихід по кнопці OK
+  while (1) {
+    // вихід
     if (digitalRead(okpin) == oksig) {
-      // очищаємо повідомлення
       u8g2.clearBuffer();
       u8g2.sendBuffer();
+      delay(200);
       return;
     }
 
-    // якщо прийшов код
     if (IrReceiver.decode()) {
-      // зберігаємо базову інформацію
       auto &d = IrReceiver.decodedIRData;
-      lastProtocol = d.protocol;                // enum/protocol
-      lastData = d.decodedRawData;                        // 32-bit дані (команда/код)
-      rawLen = 0;                                         // якщо не маємо raw, лишаємо 0
 
-      // Спроба зчитати сирі імпульси (якщо вони є / бібліотека дозволяє)
-      // Нотатка: API бібліотек IR може відрізнятися; якщо у тебе є доступ до сирих даних,
-      // сюди можна скопіювати їх у rawBuf[] і задати rawLen.
-      // Наприклад (псевдокод, працюватиме не у всіх версіях):
-      // if (d.protocol == UNKNOWN && d.numberOfBits==0) { copy raw pulses... rawLen = ... }
+      // ігноруємо repeat
+      if (!(d.flags & IRDATA_FLAGS_IS_REPEAT) && d.numberOfBits > 0) {
+        lastProtocol = d.protocol;
+        lastBits     = d.numberOfBits;
+        lastData     = d.decodedRawData;
+        rawLen       = 0;
+      }
 
-      // Формуємо рядок для відображення
-      char buf[64];
-      // показ назви протоколу (людський текст)
+      // --- Назва протоколу ---
       const char *pname = "UNKNOWN";
-      switch (d.protocol) {
+      switch (lastProtocol) {
         case NEC:     pname = "NEC"; break;
         case SONY:    pname = "SONY"; break;
         case RC5:     pname = "RC5"; break;
         case RC6:     pname = "RC6"; break;
         case SAMSUNG: pname = "SAMSUNG"; break;
         case LG:      pname = "LG"; break;
-        // додай інші протоколи, якщо потрібно
-        default:      pname = "OTHER/RAW"; break;
+        default:      pname = "OTHER"; break;
       }
 
-      // Відображення на дисплеї
+      // --- OLED ---
+      char buf[32];
       u8g2.clearBuffer();
+
       u8g2.setCursor(0, 12);
-      u8g2.print("Protocol: ");
+      u8g2.print("Proto: ");
       u8g2.print(pname);
 
-      u8g2.setCursor(0, 28);
-      snprintf(buf, sizeof(buf), "Data: 0x%08lX", (unsigned long)lastData);
+      u8g2.setCursor(0, 26);
+      snprintf(buf, sizeof(buf), "Bits: %u", lastBits);
       u8g2.print(buf);
 
-      // Якщо є сирі дані, відобразимо кількість
-      if (rawLen > 0) {
-        snprintf(buf, sizeof(buf), "Raw len: %d", rawLen);
-        u8g2.setCursor(0, 44);
-        u8g2.print(buf);
-      } else {
-        u8g2.setCursor(0, 44);
-        u8g2.print("Raw: none");
-      }
+      u8g2.setCursor(0, 40);
+      snprintf(buf, sizeof(buf), "Data: %08lX", (unsigned long)lastData);
+      u8g2.print(buf);
 
       u8g2.sendBuffer();
 
-      // Збережено — готуємось до наступного сигналу
       IrReceiver.resume();
-      delay(80); // короткий інтервал, щоб не дублювати (не обов'язково)
-    } // if decode
+      delay(120);   // анти-дубль
+    }
 
-    // трохи "полегшимо" цикл
-    delay(5);
-  } // while
+    delay(3);
+  }
 }
+
 
 void irtxF() {
-  byte sended = false;
-  // перевірка кнопки OK: якщо натиснута — не надсилати
-  if (digitalRead(okpin) == oksig) return;
+  if (lastProtocol == UNKNOWN || lastBits == 0) return;
 
-  u8g2.setFont(u8g2_font_6x10_tf);
   u8g2.clearBuffer();
-  u8g2.drawStr(0, 12, "Sending...");
+  u8g2.drawStr(0, 12, "Sending (hold OK)");
   u8g2.sendBuffer();
-  if(sended == false){
-  // якщо немає даних
-  if (lastProtocol == 0 && lastData == 0 && rawLen == 0) {
-    u8g2.clearBuffer();
-    u8g2.drawStr(0, 12, "No data stored");
-    u8g2.sendBuffer();
-    delay(300);
-    return;
-  }
 
-  // Спроба надіслати згідно з protocol
+  // ⛔ вимикаємо приймач
+  IrReceiver.stop();
+  delay(5);
+
+  // перша передача — повна
   switch (lastProtocol) {
     case NEC:
-     // IrSender.begin();
-      IrSender.sendNEC(lastData, 32);
-      sended = true;
+      IrSender.sendNEC(lastData, lastBits);
       break;
+
     case SONY:
-     // IrSender.begin();
-      // у Sony зазвичай 12 або 15 біт — бібліотека інформує по кількості бітів, але ми використовуємо 12 як у твому прикладі
-      IrSender.sendSony(lastData, 12);
-      sended = true;
+      IrSender.sendSony(lastData, lastBits);
       break;
-    case SAMSUNG:
-     // IrSender.begin();
-      // Багато реалізацій Samsung використовують 32 біта
-     // IrSender.sendSamsung(lastData, 32);
-      break;
+
     case LG:
-     // IrSender.begin();
-      IrSender.sendLG(lastData, 28);
-      sended = true;
+      IrSender.sendLG(lastData, lastBits);
       break;
+
     case RC5:
-     // IrSender.begin();
-      IrSender.sendRC5(lastData, 12);
-      sended = true;
+      IrSender.sendRC5(lastData, lastBits);
       break;
+
     case RC6:
-     // IrSender.begin();
-      IrSender.sendRC6(lastData, 20);
-      sended = true;
+      IrSender.sendRC6(lastData, lastBits);
       break;
+
     default:
-      // Якщо маємо сирі імпульси, можна відтворити їх вручну (необхідно мати rawBuf і rawLen)
-      if (rawLen > 0) {
-     //   IrSender.begin();
-        // приклад: IrSender.sendRaw(rawBuf, rawLen, frequency);
-        // Але точний виклик залежить від версії бібліотеки IrSender.
-        // Якщо в тебе є rawBuf[] та частота, тут можна викликати sendRaw.
-      } else {
-        u8g2.clearBuffer();
-        u8g2.drawStr(0, 12, "Unsupported proto");
-        u8g2.sendBuffer();
-        return;
-      }
+      IrReceiver.start();
+      return;
   }
-}else{return;}
-  // Підтвердження
+
+  delay(120); // пауза після першого кадру
+
+  // 🔁 REPEAT LOOP
+  while (digitalRead(okpin) != oksig) {
+
+    switch (lastProtocol) {
+
+      case NEC:
+        // ⚠ правильний NEC repeat
+        IrSender.sendNECRepeat();
+        break;
+
+      default:
+        // для інших протоколів — повний кадр
+//        IrSender.sendRawGap();
+//        IrSender.sendPulseDistanceWidth(
+//          lastData,
+//          lastBits,
+//          38000,
+//          1, 1, 1, 1,
+//          true
+//        );
+        break;
+    }
+    delay(110); // інтервал утримання
+  }
+
+  // ✅ повертаємо приймач
+
+  if (digitalRead(okpin) == oksig) {
+  IrReceiver.start();
+
   u8g2.clearBuffer();
-  u8g2.drawStr(0, 12, "Sent!");
+  u8g2.drawStr(0, 12, "Stopped");
   u8g2.sendBuffer();
-  delay(120);
+  delay(400);
+  return;}
 }
+
+
 
 
 
