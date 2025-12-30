@@ -6,7 +6,7 @@
 
 > mini OS & toolkit for esp32/8266 based devices
 
-![IMAGE.PNG](IMAGE.PNG)
+![IMAGE.PNG](https://github.com/arduhelp/FlexibleClockLibrary/blob/main/Design/imageWatch_uk.png)
 
 # **Що це?**
 
