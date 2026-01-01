@@ -864,21 +864,30 @@ void osciloscope(){
   delay(100);
   uint8_t x = 0;
   uint8_t readdata = 0;
+  int reade = 0;
+  int minimum = 4096;
+  int maximum = 0;
 
   pinMode(oscilospin, INPUT);
   while(true){
-    readdata = map(analogRead(oscilospin),1024,4096,1,63); 
-    Serial.println(readdata);
+    reade = analogRead(oscilospin);
+    readdata = map(reade,maximum,minimum,1,63); 
+    if (reade < minimum) minimum = reade;
+    if (reade > maximum) maximum = reade;
+    if(minimum < maximum - 500){ minimum = maximum - 500;}
     u8g2.drawPixel(x, readdata); 
     u8g2.sendBuffer();
     x += 1;
     if(x >= 127){x = 0;
        u8g2.clearBuffer();
-       u8g2.sendBuffer();}
-    delay(2);
+       u8g2.sendBuffer();
+     }
+    delay(1);
      if (digitalRead(okpin) == oksig) {
        u8g2.clearBuffer();
        u8g2.sendBuffer();
+        minimum = 4096;
+        maximum = 0;
        delay(100);
        return;
      }
