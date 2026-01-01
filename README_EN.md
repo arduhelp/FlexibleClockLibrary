@@ -3,7 +3,7 @@
 
 ---
 ![GitHub Release](https://img.shields.io/github/v/release/arduhelp/FlexibleClockLibrary?style=flat-square) 
-![platform](https://img.shields.io/badge/platform-esp32,_esp8266-blue) [![YouTube](https://img.shields.io/badge/YouTube-Video-gold)](https://www.youtube.com/channel/your_channel)
+![platform](https://img.shields.io/badge/platform-esp32,_esp8266-blue) [![YouTube](https://img.shields.io/badge/YouTube-Video-gold)](https://www.youtube.com/@etar)
 
 > Mini OS & toolkit for esp32/8266 based devices
 
