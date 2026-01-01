@@ -24,7 +24,7 @@ const char* ssid = "YourSSID";
 const char* password = "YourPassword";
 
 // Ініціалізація об’єкта FlexibleClockLibrary
-FlexibleClockLibrary clockLib(u8g2, 10, 0, A0, ssid, password, 5, 6, 7, 0);
+FlexibleClockLibrary clockLib(u8g2, 10, 0, A0, ssid, password, 1, 2, 7, 0);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 byte oksig = 0;
@@ -32,6 +32,7 @@ byte oksig = 0;
 #define irtx 1
 #define irrx 2
 
+#define oscilospin A3
  
   uint16_t rawBuf[200];
   decode_type_t lastProtocol = UNKNOWN;  // Протокол останнього сигналу
@@ -245,7 +246,7 @@ const unsigned char wallpaper_bitmap_gear [] PROGMEM = {
 
 
 
-const char* MenuItems[9] = { "clock", "wifi", "IR", "MHz", "games", "settings" , "server", "info", "" }; // Ініціалізація статичного масиву
+const char* MenuItems[9] = { "clock", "wifi", "IR", "osciloscope", "games", "settings" , "server", "info", "" }; // Ініціалізація статичного масиву
 const char* WiFiMenuItems[7] = { "connect", "disable", "AP", "scan+", "prycoly", "back to menu" , "" };
 const char* SettingsMenuItems[7] = { "GPIO", "SETclock", "find phone", "system info", "back to menu", "reboot" , "test" };
 const char* IRMenuItems[7] = { "ir rx", "ir rx(raw)", "ir tx(raw)", "scan", "back to menu", "" ,"" };
@@ -427,7 +428,7 @@ void menu() { // menu
       u8g2.drawStr(30, 40, MenuItems[parampam]);
       u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
       if (digitalRead(okpin) == oksig) {
-        clockLib.getErr("there is no GUI");
+        osciloscope();
       }
       //u8g2.sendBuffer();
       break;
@@ -854,6 +855,35 @@ return;
 
 
   //other-------------------------------
+
+//read pin
+void osciloscope(){
+  u8g2.clearBuffer();
+  u8g2.sendBuffer();
+  Serial.println("kk");
+  delay(100);
+  uint8_t x = 0;
+  uint8_t readdata = 0;
+
+  pinMode(oscilospin, INPUT);
+  while(true){
+    readdata = map(analogRead(oscilospin),1024,4096,1,63); 
+    Serial.println(readdata);
+    u8g2.drawPixel(x, readdata); 
+    u8g2.sendBuffer();
+    x += 1;
+    if(x >= 127){x = 0;
+       u8g2.clearBuffer();
+       u8g2.sendBuffer();}
+    delay(2);
+     if (digitalRead(okpin) == oksig) {
+       u8g2.clearBuffer();
+       u8g2.sendBuffer();
+       delay(100);
+       return;
+     }
+    }
+  }
 
 void irrxF() {
   while(true){
