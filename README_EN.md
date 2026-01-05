@@ -74,7 +74,7 @@ https://github.com/arduhelp/FlexibleClockLibrary/releases
 3. Configure your custom pins:
 
 ```cpp
-FlexibleClockLibrary(U8G2& disp, OKpin, OKsig, analogButton_pin, ssidConfig, passwordConfig, IR_tx_pin, IR_rx_pin, mHz_tx_pin, vibroPin);
+FlexibleClockLibrary(U8G2& disp, OKpin, OKsig, analogButton_pin, ssidConfig, passwordConfig, IR_tx_pin, IR_rx_pin, osciloscope_pin, vibroPin);
 ```
 
 4. Upload to your board
