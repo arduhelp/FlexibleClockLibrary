@@ -89,7 +89,7 @@ https://github.com/arduhelp/FlexibleClockLibrary/releases
 
 3. підлаштуйте власні піни
 ```cpp
-FlexibleClockLibrary(U8G2& disp, OKpin, OKsig, analogButton_ pin, ssidConfig, passwordConfig, IR_tx_pin, IR_rx_pin, mHz_tx_pin, vibroPin);
+FlexibleClockLibrary(U8G2& disp, OKpin, OKsig, analogButton_ pin, ssidConfig, passwordConfig, IR_tx_pin, IR_rx_pin, osciloscope_pin, vibroPin);
 ```
 
 4. Завантаж на свою плату
