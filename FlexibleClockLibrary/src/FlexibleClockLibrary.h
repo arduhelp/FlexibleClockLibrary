@@ -48,6 +48,7 @@ public:
     void begin();
     void clearDisp();
     void drawLines();
+    void osciloscope();
     //taskbar
     void taskbar_begin();
     void taskbar_draw(int taskbar_y = 8);
@@ -84,8 +85,6 @@ public:
     //ir
     void ir_rx();
     void ir_tx();
-    //mhz
-    void mhz_tx();
     //other
     void getErr(const char* errMsg);
     void drawLines(const char* lineText);
@@ -109,7 +108,10 @@ public:
     int currentMinutes = 0;       // Поточні хвилини
     unsigned long lastSyncTime = 0; // Час останнього оновлення
     int ClockUpdateMillis; //при відсутності віфі оновлювати з допомогою міліс
-
+    
+    unsigned int lhour = 0;
+    unsigned int lmin = 0;
+    unsigned int lsec = 0;
     
   
    
@@ -126,7 +128,7 @@ private:
     const char* _passwordConfig; // Wi-Fi password
     uint8_t _IR_tx; // IR TX pin
     uint8_t _IR_rx; // IR RX pin
-    uint8_t _mHz_tx; // MHz TX pin
+    uint8_t _oscilospin; // MHz TX pin
     uint8_t _buzzerPin; // buzzer or vibro pin
 
     static const char* _host_ota;
