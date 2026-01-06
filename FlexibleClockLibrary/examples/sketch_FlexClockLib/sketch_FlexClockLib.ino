@@ -1,4 +1,4 @@
- #include <U8g2lib.h>
+#include <U8g2lib.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <FlexibleClockLibrary.h>
@@ -11,8 +11,8 @@
 #endif
 
 #ifdef ESP32
- #include <NimBLEDevice.h>
- #include <IRremote.hpp>
+#include <NimBLEDevice.h>
+#include <IRremote.hpp>
 #endif
 
 NimBLEAdvertising *pAdvertising;
@@ -24,7 +24,7 @@ const char* ssid = "YourSSID";
 const char* password = "YourPassword";
 
 // Ініціалізація об’єкта FlexibleClockLibrary
-FlexibleClockLibrary clockLib(u8g2, 10, 0, A0, ssid, password, 1, 2, 7, 0);
+FlexibleClockLibrary clockLib(u8g2, 10, 0, A0, ssid, password, 1, 2, A3, 0);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 byte oksig = 0;
@@ -33,15 +33,15 @@ byte oksig = 0;
 #define irrx 2
 
 #define oscilospin A3
- 
-  uint16_t rawBuf[200];
-  decode_type_t lastProtocol = UNKNOWN;  // Протокол останнього сигналу
-  uint32_t lastData = 0;                 // Дані сигналу
-  uint8_t lastBits = 0;                 //крайні біти
-  uint16_t rawLen = 0;                   // Довжина "сирих" даних, якщо треба
+
+uint16_t rawBuf[200];
+decode_type_t lastProtocol = UNKNOWN;  // Протокол останнього сигналу
+uint32_t lastData = 0;                 // Дані сигналу
+uint8_t lastBits = 0;                 //крайні біти
+uint16_t rawLen = 0;                   // Довжина "сирих" даних, якщо треба
 
 
-void scan_plus();   
+void scan_plus();
 void pmenuwifi();
 void pmenuir();
 void pmenumhz();
@@ -178,78 +178,80 @@ const unsigned char item_bitmap_frame [] PROGMEM = {
 
 // 'gear', 128x64px
 const unsigned char wallpaper_bitmap_gear [] PROGMEM = {
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x40, 0x01, 0xb8, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x60, 0xc1, 0x98, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0xe0, 0xe3, 0x05, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x20, 0x03, 0x04, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x02, 0x00, 0x80, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x1c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0xfc, 0xff, 0xff, 0x7f, 0x07, 0x40, 0x98, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x0c, 0x0f, 0x00, 0xc0, 0x0d, 0x20, 0xd8, 0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x0c, 0x00, 0x00, 0x80, 0x10, 0x30, 0x98, 0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x0e, 0x00, 0xc0, 0x80, 0x30, 0x10, 0x9c, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0xe0, 0xc3, 0x20, 0x3c, 0x84, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x10, 0x6c, 0x20, 0xe6, 0x8f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x10, 0x38, 0xc2, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x30, 0x00, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x30, 0x00, 0x02, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x20, 0x00, 0x02, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x20, 0x00, 0x02, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x3e, 0x00, 0x02, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0xc0, 0x01, 0x00, 0x02, 0xc0, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x60, 0x00, 0x00, 0x03, 0x00, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x20, 0x00, 0xe0, 0x3f, 0x00, 0xe0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x60, 0x00, 0x38, 0x62, 0x00, 0x20, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x40, 0x00, 0x0c, 0x02, 0x00, 0x30, 0x1e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x80, 0x01, 0x86, 0x1f, 0x01, 0x1c, 0x1e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x03, 0x63, 0x22, 0x03, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x02, 0x01, 0x42, 0x02, 0x06, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x02, 0x01, 0x02, 0x04, 0x06, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x3e, 0x00, 0xb3, 0xc1, 0x8f, 0x24, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x3c, 0xf8, 0xf0, 0xff, 0xff, 0xff, 0x18, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x2c, 0x1e, 0x80, 0x19, 0x82, 0x0c, 0x70, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x1f, 0x80, 0x01, 0x82, 0x0c, 0xc0, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x12, 0x00, 0x01, 0x02, 0x04, 0x40, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x32, 0x00, 0x11, 0x42, 0x04, 0x40, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0xe2, 0x03, 0x63, 0x22, 0x02, 0x60, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x80, 0x07, 0x86, 0x0f, 0x03, 0x3f, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x04, 0x0c, 0x82, 0x01, 0xe1, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0x04, 0x18, 0xe2, 0x00, 0x01, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x10, 0x04, 0x70, 0x3e, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x11, 0x06, 0x00, 0x03, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x01, 0x03, 0x00, 0x02, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x30, 0x01, 0x00, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x84, 0x01, 0x01, 0x00, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x00, 0xc1, 0x00, 0x02, 0x38, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x02, 0xff, 0x01, 0x02, 0xcc, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x02, 0x0e, 0x03, 0x02, 0x04, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x02, 0x00, 0x03, 0x07, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x02, 0x00, 0x83, 0x1f, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x02, 0x00, 0x63, 0x30, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x04, 0x06, 0x00, 0x23, 0x20, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x0e, 0x07, 0x00, 0x32, 0xc0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0xfe, 0xff, 0xff, 0x1c, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x00, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x02, 0x86, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x1a, 0x87, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0xfa, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x1a, 0x80, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x02, 0x80, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x02, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x40, 0x01, 0xb8, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x60, 0xc1, 0x98, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0xe0, 0xe3, 0x05, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x20, 0x03, 0x04, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x02, 0x00, 0x80, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x1c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0xfc, 0xff, 0xff, 0x7f, 0x07, 0x40, 0x98, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x0c, 0x0f, 0x00, 0xc0, 0x0d, 0x20, 0xd8, 0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x0c, 0x00, 0x00, 0x80, 0x10, 0x30, 0x98, 0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x0e, 0x00, 0xc0, 0x80, 0x30, 0x10, 0x9c, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0xe0, 0xc3, 0x20, 0x3c, 0x84, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x10, 0x6c, 0x20, 0xe6, 0x8f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x10, 0x38, 0xc2, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x30, 0x00, 0x02, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x30, 0x00, 0x02, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x20, 0x00, 0x02, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x20, 0x00, 0x02, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x3e, 0x00, 0x02, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0xc0, 0x01, 0x00, 0x02, 0xc0, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x60, 0x00, 0x00, 0x03, 0x00, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x20, 0x00, 0xe0, 0x3f, 0x00, 0xe0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x60, 0x00, 0x38, 0x62, 0x00, 0x20, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x40, 0x00, 0x0c, 0x02, 0x00, 0x30, 0x1e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x80, 0x01, 0x86, 0x1f, 0x01, 0x1c, 0x1e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x03, 0x63, 0x22, 0x03, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x02, 0x01, 0x42, 0x02, 0x06, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x02, 0x01, 0x02, 0x04, 0x06, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x3e, 0x00, 0xb3, 0xc1, 0x8f, 0x24, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x3c, 0xf8, 0xf0, 0xff, 0xff, 0xff, 0x18, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x2c, 0x1e, 0x80, 0x19, 0x82, 0x0c, 0x70, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x1f, 0x80, 0x01, 0x82, 0x0c, 0xc0, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x12, 0x00, 0x01, 0x02, 0x04, 0x40, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x32, 0x00, 0x11, 0x42, 0x04, 0x40, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0xe2, 0x03, 0x63, 0x22, 0x02, 0x60, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x80, 0x07, 0x86, 0x0f, 0x03, 0x3f, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x04, 0x0c, 0x82, 0x01, 0xe1, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0x04, 0x18, 0xe2, 0x00, 0x01, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x10, 0x04, 0x70, 0x3e, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x11, 0x06, 0x00, 0x03, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x01, 0x03, 0x00, 0x02, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x30, 0x01, 0x00, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x84, 0x01, 0x01, 0x00, 0x02, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x00, 0xc1, 0x00, 0x02, 0x38, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x02, 0xff, 0x01, 0x02, 0xcc, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x02, 0x0e, 0x03, 0x02, 0x04, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x02, 0x00, 0x03, 0x07, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x02, 0x00, 0x83, 0x1f, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x02, 0x00, 0x63, 0x30, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x04, 0x06, 0x00, 0x23, 0x20, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x0e, 0x07, 0x00, 0x32, 0xc0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0xfe, 0xff, 0xff, 0x1c, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x07, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x02, 0x86, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x1a, 0x87, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0xfa, 0xff, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x1a, 0x80, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x02, 0x80, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x02, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 
 
 const char* MenuItems[9] = { "clock", "wifi", "IR", "osciloscope", "games", "settings" , "server", "info", "" }; // Ініціалізація статичного масиву
+//   +-      +-      +-         +           +         -           --
 const char* WiFiMenuItems[7] = { "connect", "disable", "AP", "scan+", "prycoly", "back to menu" , "" };
-const char* SettingsMenuItems[7] = { "GPIO", "SETclock", "find phone", "system info", "back to menu", "reboot" , "test" };
-const char* IRMenuItems[7] = { "ir rx", "ir rx(raw)", "ir tx(raw)", "scan", "back to menu", "" ,"" };
+//       -            +        +      +         +-           +
+const char* SettingsMenuItems[7] = { "GPIO", "SETclock", "buzzer test", "system info", "back to menu", "reboot" , "test" };
+const char* IRMenuItems[7] = { "ir rx", "ir rx(raw)", "ir tx(raw)", "scan", "back to menu", "" , "" };
 
 
 
@@ -261,35 +263,37 @@ void setup() {
   IrSender.begin(irtx);
 
   clockLib.taskbar_show = 1;
- // timeClient.begin(); // Ініціалізуємо NTP-клієнт
+  // timeClient.begin(); // Ініціалізуємо NTP-клієнт
   clockLib.currentHours = 18;
   clockLib.currentMinutes = 58;
+  clockLib.lhour = 18;
+  clockLib.lmin = 58;
   clockLib.UTC = 1;
   clockLib.currentHours += clockLib.UTC;
   clockLib.ClockDisp(clockposX, clockposY,/*wallpaper_bitmap_bezmeteznist*/ wallpaper_bitmap_gear, 128, 64);
 
-delay(100);
+  delay(100);
 }
 
 
 void loop() {
 
- // menu();
+  // menu();
   updateClock();
 
-clockLib.taskbar_draw(8);
+  clockLib.taskbar_draw(8);
   if (WiFi.status() != WL_CONNECTED && clockLib.wifiType != 0) {
     clockLib.wifiType = 3;
   }
   if (WiFi.status() == WL_CONNECTED) {
     clockLib.wifiType = 1;
-  } 
+  }
 
 
   //u8g2.clearBuffer();
 
   //Serial.println(digitalRead(16));
-  
+
 
   if (Serial.available()) {//debug
     String command = Serial.readStringUntil('\n');  // Зчитуємо команду до кінця рядка
@@ -309,8 +313,8 @@ clockLib.taskbar_draw(8);
       clockLib.ir_rx();
     } else if (command == "ir_tx" || command == "irt") {
       clockLib.ir_tx();
-    } else if (command == "mhz_tx" || command == "mhzt") {
-      clockLib.mhz_tx();
+    } else if (command == "osciloscope" || command == "osc") {
+      clockLib.osciloscope();
     } else if (command == "getErr" || command == "gE") {
       clockLib.getErr("Sample Error Message");
     } else if (command == "drawLines" || command == "dL") {
@@ -332,18 +336,20 @@ clockLib.taskbar_draw(8);
     }
   }
 
-if (digitalRead(okpin) == oksig) {
-      delay(1000); 
-      if (digitalRead(okpin) == oksig) { 
-       menu(); }}
+  if (digitalRead(okpin) == oksig) {
+    delay(1000);
+    if (digitalRead(okpin) == oksig) {
+      menu();
+    }
+  }
 
 
 
-      u8g2.clearBuffer();
-    u8g2.drawStr(10, 20, "load... debug...");
-    u8g2.drawStr(10, 30, "hold OK for EXIT.");
-    u8g2.sendBuffer(); 
-       delay(100);
+  u8g2.clearBuffer();
+  u8g2.drawStr(10, 20, "load... debug...");
+  u8g2.drawStr(10, 30, "hold OK for EXIT.");
+  u8g2.sendBuffer();
+  delay(100);
 
 
 
@@ -351,498 +357,499 @@ if (digitalRead(okpin) == oksig) {
 
 //AI code
 void updateClock() {
-  if (WiFi.status() == WL_CONNECTED) {
-    unsigned long localTime = 0;
-    unsigned long lastMillis = 0;
-    timeClient.setTimeOffset(clockLib.UTC * 3600); // Налаштування UTC
-    timeClient.update();
-    localTime = timeClient.getEpochTime();
-    lastMillis = millis();
-
-
-    unsigned long adjustedTime = localTime + (clockLib.UTC * 3600);
-    clockLib.currentHours = (adjustedTime % 86400L) / 3600;
-    clockLib.currentMinutes = (adjustedTime % 3600) / 60;
-  }
+  //  if (WiFi.status() == WL_CONNECTED) {
+  //    unsigned long localTime = 0;
+  //    unsigned long lastMillis = 0;
+  //    timeClient.setTimeOffset(clockLib.UTC * 3600); // Налаштування UTC
+  //    timeClient.update();
+  //    localTime = timeClient.getEpochTime();
+  //    lastMillis = millis();
+  //
+  //
+  //    unsigned long adjustedTime = localTime + (clockLib.UTC * 3600);
+  //    clockLib.currentHours = (adjustedTime % 86400L) / 3600;
+  //    clockLib.currentMinutes = (adjustedTime % 3600) / 60;
+  //  }
 }
 //end AI code
 
-  static int parampam = 0; // Змінна повинна бути статичною, щоб зберігати значення між викликами функції
-  static unsigned long lastTime = 0; // Змінна для таймера автофліппера
+static int parampam = 0; // Змінна повинна бути статичною, щоб зберігати значення між викликами функції
+static unsigned long lastTime = 0; // Змінна для таймера автофліппера
 void menu() { // menu
- for (int i = 0; i = 20; i++) {
-  clockLib.taskbar_draw(8);
-  u8g2.setFont(u8g2_font_crox1hb_tf);
-  if (WiFi.status() != WL_CONNECTED && clockLib.wifiType != 0) {
-    clockLib.wifiType = 3;
-  }
-  if (WiFi.status() == WL_CONNECTED) {
-    clockLib.wifiType = 1;
-  }
-  
-   
+  for (int i = 0; i = 20; i++) {
+    clockLib.taskbar_draw(8);
+    u8g2.setFont(u8g2_font_crox1hb_tf);
+    if (WiFi.status() != WL_CONNECTED && clockLib.wifiType != 0) {
+      clockLib.wifiType = 3;
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+      clockLib.wifiType = 1;
+    }
 
-  // Виведення пунктів меню
-  switch (parampam) {
-    case 0: // Clock
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_clock);
-      u8g2.drawStr(30, 22, MenuItems[7]);
-      u8g2.drawStr(30, 40, MenuItems[parampam]);
-      u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        clockLib.ClockDisp(clockposX, clockposY,/*wallpaper_bitmap_bezmeteznist*/ wallpaper_bitmap_gear, 128, 64);
-      }
-      //u8g2.sendBuffer(); 60 30
-      break;
 
-    case 1: // WiFi
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi);
-      u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, MenuItems[parampam]);
-      u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        delay(1000);
-        pmenuwifi();
-      }
-      //u8g2.sendBuffer();
-      break;
 
-    case 2: // IR
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_tx);
-      u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, MenuItems[parampam]);
-      u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        pmenuir();
-      }
-      //u8g2.sendBuffer();
-      break;
+    // Виведення пунктів меню
+    switch (parampam) {
+      case 0: // Clock
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_clock);
+        u8g2.drawStr(30, 22, MenuItems[7]);
+        u8g2.drawStr(30, 40, MenuItems[parampam]);
+        u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          clockLib.ClockDisp(clockposX, clockposY,/*wallpaper_bitmap_bezmeteznist*/ wallpaper_bitmap_gear, 128, 64);
+        }
+        //u8g2.sendBuffer(); 60 30
+        break;
 
-    case 3: // MHz
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_mhz);
-      u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, MenuItems[parampam]);
-      u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        osciloscope();
-      }
-      //u8g2.sendBuffer();
-      break;
+      case 1: // WiFi
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi);
+        u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, MenuItems[parampam]);
+        u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          delay(1000);
+          pmenuwifi();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-    case 4: // Game
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_games);
-      u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, MenuItems[parampam]);
-      u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        clockLib.gamegonki();
-      }
-      //u8g2.sendBuffer();
-      break;
+      case 2: // IR
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_tx);
+        u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, MenuItems[parampam]);
+        u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          pmenuir();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-    case 5: //settings
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_settings);
-      u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, MenuItems[parampam]);
-      u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        pmenusettings();
-      }
-      //u8g2.sendBuffer();
-      break;
+      case 3: // osciloscope
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_mhz);
+        u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, MenuItems[parampam]);
+        u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          clockLib.osciloscope();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-    case 6: // server
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_server);
-      u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, MenuItems[parampam]);
-      u8g2.drawStr(30, 60, MenuItems[0]);
-      if (digitalRead(okpin) == oksig) {
-        clockLib.getErr("there is no GUI");
-      }
-      //u8g2.sendBuffer();
-      break;
+      case 4: // Game
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_games);
+        u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, MenuItems[parampam]);
+        u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          clockLib.gamegonki();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-    default:
-      parampam = 0; // Повертаємось до першого пункту, якщо вийшли за межі
-      break;
-  }
-  u8g2.drawStr(126, parampam * 8, ".");
+      case 5: //settings
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_settings);
+        u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, MenuItems[parampam]);
+        u8g2.drawStr(30, 60, MenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          pmenusettings();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-  // Автоматичний фліп
-  if (clockLib.autofliper == 1) {
-    if (millis() - lastTime >= 1000) { // Якщо пройшла 1 секунда
-      lastTime = millis(); // Оновлюємо таймер
-      u8g2.clearBuffer();
-      parampam++; // Переходимо до наступного пункту
-      u8g2.sendBuffer();
-      if (parampam > 6) { // Якщо перевищили кількість пунктів меню
-        parampam = 0; // Повертаємось до першого пункту
+      case 6: // server
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_server);
+        u8g2.drawStr(30, 22, MenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, MenuItems[parampam]);
+        u8g2.drawStr(30, 60, MenuItems[0]);
+        if (digitalRead(okpin) == oksig) {
+          clockLib.getErr("there is no GUI");
+        }
+        //u8g2.sendBuffer();
+        break;
+
+      default:
+        parampam = 0; // Повертаємось до першого пункту, якщо вийшли за межі
+        break;
+    }
+    u8g2.drawStr(126, parampam * 8, ".");
+
+    // Автоматичний фліп
+    if (clockLib.autofliper == 1) {
+      if (millis() - lastTime >= 1000) { // Якщо пройшла 1 секунда
+        lastTime = millis(); // Оновлюємо таймер
+        u8g2.clearBuffer();
+        parampam++; // Переходимо до наступного пункту
+        u8g2.sendBuffer();
+        if (parampam > 6) { // Якщо перевищили кількість пунктів меню
+          parampam = 0; // Повертаємось до першого пункту
+        }
       }
     }
+    u8g2.sendBuffer(); // Оновлюємо екран
+    delay(30);
+
   }
-  u8g2.sendBuffer(); // Оновлюємо екран
-  delay(30);
-  
- }
- return;
+  return;
 }
 //----------------------
 //----settings-menu-----
 //----------------------
 //{ "wallpaper", "SETclock", "find phone","system info", "back to menu", "reboot" ,"test" };
 void pmenusettings() { // pmenusettings
-    u8g2.clearBuffer();
-    u8g2.drawStr(30, 40, "settings");
-    u8g2.sendBuffer();
-    delay(1000);
- for (int i = 0; i = 20; i++) {
-      clockLib.taskbar_draw(8);
-      u8g2.setFont(u8g2_font_crox1hb_tf);
-     // u8g2.setFont(u8g2_font_crox1hb_tf);
-  
+  u8g2.clearBuffer();
+  u8g2.drawStr(30, 40, "settings");
+  u8g2.sendBuffer();
+  delay(1000);
+  for (int i = 0; i = 20; i++) {
+    clockLib.taskbar_draw(8);
+    u8g2.setFont(u8g2_font_crox1hb_tf);
+    // u8g2.setFont(u8g2_font_crox1hb_tf);
 
-  
 
-  // Виведення пунктів меню
-  switch (parampam) {
-    case 0: // walpaper
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_image);
-      u8g2.drawStr(30, 22, SettingsMenuItems[7]);
-      u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
-      u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {}
-      //u8g2.sendBuffer(); 60 30
-      break;
 
-    case 1: // setclock
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_clock);
-      u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
-      u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {}
-      //u8g2.sendBuffer();
-      break;
 
-    case 2: // find phone
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_find_phone);
-      u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
-      u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        clockLib.buzzertest();
-      }
-      //u8g2.sendBuffer();
-      break;
+    // Виведення пунктів меню
+    switch (parampam) {
+      case 0: // walpaper
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_image);
+        u8g2.drawStr(30, 22, SettingsMenuItems[7]);
+        u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
+        u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {}
+        //u8g2.sendBuffer(); 60 30
+        break;
 
-    case 3: // sys inf
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, clockLib.def_bitmap_def_unknown);
-      u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
-      u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        clockLib.getErr("there is no GUI");
-      }
-      //u8g2.sendBuffer();
-      break;
+      case 1: // setclock
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_clock);
+        u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
+        u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {}
+        //u8g2.sendBuffer();
+        break;
 
-    case 4: //back
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_exit_enter);
-      u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
-      u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        delay(700);
-        return;
-      }
-      //u8g2.sendBuffer();
-      break;
+      case 2: // find phone
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_find_phone);
+        u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
+        u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          clockLib.buzzertest();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-    case 5: //reboot
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_reboot);
-      u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
-      u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
-      if (digitalRead(okpin) == oksig) {
-        for (int i = 0; i = 2000; i++) {
-          u8g2.clearBuffer();
-          u8g2.drawStr(30, 40, "rebooting");
-          u8g2.sendBuffer();}
-      }
-      //u8g2.sendBuffer();
-      break;
+      case 3: // sys inf
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, clockLib.def_bitmap_def_unknown);
+        u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
+        u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          clockLib.getErr("there is no GUI");
+        }
+        //u8g2.sendBuffer();
+        break;
 
-    case 6: // test
-      u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-      u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_games);
-      u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
-      u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
-      u8g2.drawStr(30, 60, SettingsMenuItems[0]);
-      if (digitalRead(okpin) == oksig) {
-        clockLib.getErr("there is no GUI");
-      }
-      //u8g2.sendBuffer();
-      break;
+      case 4: //back
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_exit_enter);
+        u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
+        u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          delay(700);
+          return;
+        }
+        //u8g2.sendBuffer();
+        break;
 
-    default:
-      parampam = 0; // Повертаємось до першого пункту, якщо вийшли за межі
-      break;
-  }
-  u8g2.drawStr(126, parampam * 8, ".");
+      case 5: //reboot
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_reboot);
+        u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
+        u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          for (int i = 0; i = 2000; i++) {
+            u8g2.clearBuffer();
+            u8g2.drawStr(30, 40, "rebooting");
+            u8g2.sendBuffer();
+          }
+        }
+        //u8g2.sendBuffer();
+        break;
 
-  // Автоматичний фліп
-  if (clockLib.autofliper == 1) {
-    if (millis() - lastTime >= 1000) { // Якщо пройшла 1 секунда
-      lastTime = millis(); // Оновлюємо таймер
-      u8g2.clearBuffer();
-      parampam++; // Переходимо до наступного пункту
-      u8g2.sendBuffer();
-      if (parampam > 6) { // Якщо перевищили кількість пунктів меню
-        parampam = 0; // Повертаємось до першого пункту
+      case 6: // test
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_games);
+        u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
+        u8g2.drawStr(30, 60, SettingsMenuItems[0]);
+        if (digitalRead(okpin) == oksig) {
+          clockLib.getErr("there is no GUI");
+        }
+        //u8g2.sendBuffer();
+        break;
+
+      default:
+        parampam = 0; // Повертаємось до першого пункту, якщо вийшли за межі
+        break;
+    }
+    u8g2.drawStr(126, parampam * 8, ".");
+
+    // Автоматичний фліп
+    if (clockLib.autofliper == 1) {
+      if (millis() - lastTime >= 1000) { // Якщо пройшла 1 секунда
+        lastTime = millis(); // Оновлюємо таймер
+        u8g2.clearBuffer();
+        parampam++; // Переходимо до наступного пункту
+        u8g2.sendBuffer();
+        if (parampam > 6) { // Якщо перевищили кількість пунктів меню
+          parampam = 0; // Повертаємось до першого пункту
+        }
       }
     }
+    u8g2.sendBuffer(); // Оновлюємо екран
+    delay(20);
   }
-  u8g2.sendBuffer(); // Оновлюємо екран
-      delay(20);
- }
-return;
-     
-  
+  return;
+
+
 }
 
-  //----------------------
-  //------wifi-menu-------
-  //----------------------
-  void pmenuwifi() { // menu
-    u8g2.clearBuffer();
-    u8g2.drawStr(30, 40, "wifi");
-    u8g2.sendBuffer();
-    delay(1000);
-    for (int i = 0; i = 20; i++) {
-      clockLib.taskbar_draw(8);
-      u8g2.setFont(u8g2_font_crox1hb_tf);
-      
+//----------------------
+//------wifi-menu-------
+//----------------------
+void pmenuwifi() { // menu
+  u8g2.clearBuffer();
+  u8g2.drawStr(30, 40, "wifi");
+  u8g2.sendBuffer();
+  delay(1000);
+  for (int i = 0; i = 20; i++) {
+    clockLib.taskbar_draw(8);
+    u8g2.setFont(u8g2_font_crox1hb_tf);
 
-      //u8g2.clearBuffer(); // Очищення буфера дисплея
 
-      // Виведення пунктів меню
-      switch (parampam) {//{ "connect", "disable", "AP","scan", "prycoly", "" ,"" };
-        case 0: // connect
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi);
-          u8g2.drawStr(30, 22, WiFiMenuItems[5]);
-          u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
-          u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            clockLib.wifi_connect(".exe", "./wificonnecting.exe");
-          }
-          //u8g2.sendBuffer();
-          break;
+    //u8g2.clearBuffer(); // Очищення буфера дисплея
 
-        case 1: // disable
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi_disable);
-          u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
-          u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            delay(1000);
-            clockLib.wifi_disable();
-          }
-          //u8g2.sendBuffer();
-          break;
+    // Виведення пунктів меню
+    switch (parampam) {//{ "connect", "disable", "AP","scan", "prycoly", "" ,"" };
+      case 0: // connect
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi);
+        u8g2.drawStr(30, 22, WiFiMenuItems[5]);
+        u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
+        u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          clockLib.wifi_connect(".exe", "./wificonnecting.exe");
+        }
+        //u8g2.sendBuffer();
+        break;
 
-        case 2: // AP
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi_ap);
-          u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
-          u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            delay(1000);
-            clockLib.wifi_ap("Wemos", "1243qwertyuiop");
-          }
-          //u8g2.sendBuffer();
-          break;
+      case 1: // disable
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi_disable);
+        u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
+        u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          delay(1000);
+          clockLib.wifi_disable();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-        case 3: // scan
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi_scan);
-          u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
-          u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            scan_plus();
-          }
-          //u8g2.sendBuffer();
-          break;
+      case 2: // AP
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi_ap);
+        u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
+        u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          delay(1000);
+          clockLib.wifi_ap("Wemos", "1243qwertyuiop");
+        }
+        //u8g2.sendBuffer();
+        break;
 
-        case 4: // prycoly
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi_hack);
-          u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
-          u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            sourapple();
-            }
-          //u8g2.sendBuffer();
-          break;
+      case 3: // scan
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi_scan);
+        u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
+        u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          scan_plus();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-        case 5: // exit
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_exit_enter);
-          u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
-          u8g2.drawStr(30, 60, WiFiMenuItems[0]);
-          if (digitalRead(okpin) == oksig) {
-            delay(1000);
-            return;
-          }
-          //u8g2.sendBuffer();
-          break;
+      case 4: // prycoly
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_wifi_hack);
+        u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
+        u8g2.drawStr(30, 60, WiFiMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          sourapple();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-        default:
-          parampam = 0; // Повертаємось до першого пункту, якщо вийшли за межі
-          break;
-      }
-      u8g2.drawStr(126, parampam * 8, ".");
+      case 5: // exit
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_exit_enter);
+        u8g2.drawStr(30, 22, WiFiMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, WiFiMenuItems[parampam]);
+        u8g2.drawStr(30, 60, WiFiMenuItems[0]);
+        if (digitalRead(okpin) == oksig) {
+          delay(1000);
+          return;
+        }
+        //u8g2.sendBuffer();
+        break;
 
-      // Автоматичний фліп
-      if (clockLib.autofliper == 1) {
-        if (millis() - lastTime >= 1000) { // Якщо пройшла 1 секунда
-          lastTime = millis(); // Оновлюємо таймер
-          u8g2.clearBuffer();
-          parampam++; // Переходимо до наступного пункту
-          u8g2.sendBuffer();
-          if (parampam > 5) { // Якщо перевищили кількість пунктів меню
-            parampam = 0; // Повертаємось до першого пункту
-          }
+      default:
+        parampam = 0; // Повертаємось до першого пункту, якщо вийшли за межі
+        break;
+    }
+    u8g2.drawStr(126, parampam * 8, ".");
+
+    // Автоматичний фліп
+    if (clockLib.autofliper == 1) {
+      if (millis() - lastTime >= 1000) { // Якщо пройшла 1 секунда
+        lastTime = millis(); // Оновлюємо таймер
+        u8g2.clearBuffer();
+        parampam++; // Переходимо до наступного пункту
+        u8g2.sendBuffer();
+        if (parampam > 5) { // Якщо перевищили кількість пунктів меню
+          parampam = 0; // Повертаємось до першого пункту
         }
       }
-
-      u8g2.sendBuffer(); // Оновлюємо екран
-      delay(20);
     }
-    return;
+
+    u8g2.sendBuffer(); // Оновлюємо екран
+    delay(20);
   }
+  return;
+}
 
-  void pmenuir() {
-     u8g2.clearBuffer();
-    u8g2.drawStr(30, 40, "ir menu");
-    u8g2.sendBuffer();
-    delay(1000);
-    for (int i = 0; i = 20; i++) {
-      clockLib.taskbar_draw(8);
-      u8g2.setFont(u8g2_font_crox1hb_tf);
-      
+void pmenuir() {
+  u8g2.clearBuffer();
+  u8g2.drawStr(30, 40, "ir menu");
+  u8g2.sendBuffer();
+  delay(1000);
+  for (int i = 0; i = 20; i++) {
+    clockLib.taskbar_draw(8);
+    u8g2.setFont(u8g2_font_crox1hb_tf);
 
-      //u8g2.clearBuffer(); // Очищення буфера дисплея
 
-      // Виведення пунктів меню
-      switch (parampam) {//{ "ir rx", "ir rx(raw)", "ir tx(raw)", "scan", "exit", "" ,"" };
-        case 0: // rx
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_rx);
-          u8g2.drawStr(30, 22, IRMenuItems[5]);
-          u8g2.drawStr(30, 40, IRMenuItems[parampam]);
-          u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            delay(1000);
-            irrxF();
-          }
-          //u8g2.sendBuffer();
-          break;
+    //u8g2.clearBuffer(); // Очищення буфера дисплея
 
-        case 1: // rx raw
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_raw_rx);
-          u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, IRMenuItems[parampam]);
-          u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            delay(1000);
-            irrxRawF();
-          }
-          //u8g2.sendBuffer();
-          break;
+    // Виведення пунктів меню
+    switch (parampam) {//{ "ir rx", "ir rx(raw)", "ir tx(raw)", "scan", "exit", "" ,"" };
+      case 0: // rx
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_rx);
+        u8g2.drawStr(30, 22, IRMenuItems[5]);
+        u8g2.drawStr(30, 40, IRMenuItems[parampam]);
+        u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          delay(1000);
+          irrxF();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-        case 2: // tx
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_raw_rx);
-          u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, IRMenuItems[parampam]);
-          u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            delay(1000);
-            irtxF();
-          }
-          //u8g2.sendBuffer();
-          break;
+      case 1: // rx raw
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_raw_rx);
+        u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, IRMenuItems[parampam]);
+        u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          delay(1000);
+          irrxRawF();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-        case 3: // scan
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_tx);
-          u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, IRMenuItems[parampam]);
-          u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
-          if (digitalRead(okpin) == oksig) {
-            //scan_plus();
-          }
-          //u8g2.sendBuffer();
-          break;
+      case 2: // tx
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_raw_rx);
+        u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, IRMenuItems[parampam]);
+        u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          delay(1000);
+          irtxF();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-        case 4: // exit
-          u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
-          u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_exit_enter);
-          u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
-          u8g2.drawStr(30, 40, IRMenuItems[parampam]);
-          u8g2.drawStr(30, 60, IRMenuItems[0]);
-          if (digitalRead(okpin) == oksig) {
-            delay(1000);
-            return;
-          }
-          //u8g2.sendBuffer();
-          break;
+      case 3: // scan
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_ir_tx);
+        u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, IRMenuItems[parampam]);
+        u8g2.drawStr(30, 60, IRMenuItems[parampam + 1]);
+        if (digitalRead(okpin) == oksig) {
+          //scan_plus();
+        }
+        //u8g2.sendBuffer();
+        break;
 
-        default:
-          parampam = 0; // Повертаємось до першого пункту, якщо вийшли за межі
-          break;
-      }
-      u8g2.drawStr(126, parampam * 8, ".");
+      case 4: // exit
+        u8g2.drawXBMP(0, 25, 120, 24, item_bitmap_frame);
+        u8g2.drawXBMP(5, 28, 15, 15, item_bitmap_exit_enter);
+        u8g2.drawStr(30, 22, IRMenuItems[parampam - 1]);
+        u8g2.drawStr(30, 40, IRMenuItems[parampam]);
+        u8g2.drawStr(30, 60, IRMenuItems[0]);
+        if (digitalRead(okpin) == oksig) {
+          delay(1000);
+          return;
+        }
+        //u8g2.sendBuffer();
+        break;
 
-      // Автоматичний фліп
-      if (clockLib.autofliper == 1) {
-        if (millis() - lastTime >= 1000) { // Якщо пройшла 1 секунда
-          lastTime = millis(); // Оновлюємо таймер
-          u8g2.clearBuffer();
-          parampam++; // Переходимо до наступного пункту
-          u8g2.sendBuffer();
-          if (parampam > 4) { // Якщо перевищили кількість пунктів меню
-            parampam = 0; // Повертаємось до першого пункту
-          }
+      default:
+        parampam = 0; // Повертаємось до першого пункту, якщо вийшли за межі
+        break;
+    }
+    u8g2.drawStr(126, parampam * 8, ".");
+
+    // Автоматичний фліп
+    if (clockLib.autofliper == 1) {
+      if (millis() - lastTime >= 1000) { // Якщо пройшла 1 секунда
+        lastTime = millis(); // Оновлюємо таймер
+        u8g2.clearBuffer();
+        parampam++; // Переходимо до наступного пункту
+        u8g2.sendBuffer();
+        if (parampam > 4) { // Якщо перевищили кількість пунктів меню
+          parampam = 0; // Повертаємось до першого пункту
         }
       }
-
-      u8g2.sendBuffer(); // Оновлюємо екран
-      delay(20);
     }
-    return;
-   }
-  void pmenumhz() {}
-  void pmenugames() {}
+
+    u8g2.sendBuffer(); // Оновлюємо екран
+    delay(20);
+  }
+  return;
+}
+void pmenumhz() {}
+void pmenugames() {}
 
 
 
@@ -854,48 +861,48 @@ return;
 
 
 
-  //other-------------------------------
+//other-------------------------------
 
 //read pin
-void osciloscope(){
-  u8g2.clearBuffer();
-  u8g2.sendBuffer();
-  Serial.println("kk");
-  delay(100);
-  uint8_t x = 0;
-  uint8_t readdata = 0;
-  int reade = 0;
-  int minimum = 4096;
-  int maximum = 0;
-
-  pinMode(oscilospin, INPUT);
-  while(true){
-    reade = analogRead(oscilospin);
-    readdata = map(reade,maximum,minimum,1,63); 
-    if (reade < minimum) minimum = reade;
-    if (reade > maximum) maximum = reade;
-    if(minimum < maximum - 500){ minimum = maximum - 500;}
-    u8g2.drawPixel(x, readdata); 
-    u8g2.sendBuffer();
-    x += 1;
-    if(x >= 127){x = 0;
-       u8g2.clearBuffer();
-       u8g2.sendBuffer();
-     }
-    delay(1);
-     if (digitalRead(okpin) == oksig) {
-       u8g2.clearBuffer();
-       u8g2.sendBuffer();
-        minimum = 4096;
-        maximum = 0;
-       delay(100);
-       return;
-     }
-    }
-  }
+//void osciloscope(){
+//  u8g2.clearBuffer();
+//  u8g2.sendBuffer();
+//  Serial.println("kk");
+//  delay(100);
+//  uint8_t x = 0;
+//  uint8_t readdata = 0;
+//  int reade = 0;
+//  int minimum = 4096;
+//  int maximum = 0;
+//
+//  pinMode(oscilospin, INPUT);
+//  while(true){
+//    reade = analogRead(oscilospin);
+//    readdata = map(reade,maximum,minimum,1,63);
+//    if (reade < minimum) minimum = reade;
+//    if (reade > maximum) maximum = reade;
+//    if(minimum < maximum - 500){ minimum = maximum - 500;}
+//    u8g2.drawPixel(x, readdata);
+//    u8g2.sendBuffer();
+//    x += 1;
+//    if(x >= 127){x = 0;
+//       u8g2.clearBuffer();
+//       u8g2.sendBuffer();
+//     }
+//    delay(1);
+//     if (digitalRead(okpin) == oksig) {
+//       u8g2.clearBuffer();
+//       u8g2.sendBuffer();
+//        minimum = 4096;
+//        maximum = 0;
+//       delay(100);
+//       return;
+//     }
+//    }
+//  }
 
 void irrxF() {
-  while(true){
+  while (true) {
     delay(10);
     if (IrReceiver.decode()) {
 
@@ -910,16 +917,16 @@ void irrxF() {
       u8g2.drawStr(0, 28, buf);
       u8g2.sendBuffer();
       IrReceiver.resume();
-     }
-     if (digitalRead(okpin) == oksig) {
+    }
+    if (digitalRead(okpin) == oksig) {
       // очищаємо повідомлення
       u8g2.clearBuffer();
       u8g2.sendBuffer();
       return;
     }
-    
-    }
+
   }
+}
 //--- ai code ---
 void irrxRawF() {
   u8g2.setFont(u8g2_font_6x10_tf);
@@ -1040,14 +1047,14 @@ void irtxF() {
 
       default:
         // для інших протоколів — повний кадр
-//        IrSender.sendRawGap();
-//        IrSender.sendPulseDistanceWidth(
-//          lastData,
-//          lastBits,
-//          38000,
-//          1, 1, 1, 1,
-//          true
-//        );
+        //        IrSender.sendRawGap();
+        //        IrSender.sendPulseDistanceWidth(
+        //          lastData,
+        //          lastBits,
+        //          38000,
+        //          1, 1, 1, 1,
+        //          true
+        //        );
         break;
     }
     delay(110); // інтервал утримання
@@ -1056,13 +1063,14 @@ void irtxF() {
   // ✅ повертаємо приймач
 
   if (digitalRead(okpin) == oksig) {
-  IrReceiver.start();
+    IrReceiver.start();
 
-  u8g2.clearBuffer();
-  u8g2.drawStr(0, 12, "Stopped");
-  u8g2.sendBuffer();
-  delay(400);
-  return;}
+    u8g2.clearBuffer();
+    u8g2.drawStr(0, 12, "Stopped");
+    u8g2.sendBuffer();
+    delay(400);
+    return;
+  }
 }
 
 
@@ -1072,14 +1080,14 @@ void irtxF() {
 
 //--- end ai code ---
 
-  
-  void pmenuscanplus() {
-    u8g2.setCursor(0, 52);
-    u8g2.print("rescan/exit");
-    u8g2.sendBuffer();
-    delay(200);
-  }
-  void scan_plus() {
+
+void pmenuscanplus() {
+  u8g2.setCursor(0, 52);
+  u8g2.print("rescan/exit");
+  u8g2.sendBuffer();
+  delay(200);
+}
+void scan_plus() {
   u8g2.setFont(u8g2_font_6x10_tf);
   int currentNetwork = 0;
   int numNetworks = 0;
@@ -1129,20 +1137,20 @@ void irtxF() {
       u8g2.print(WiFi.SSID(currentNetwork));
 
       // ==== MAC адреса ====
-      #ifdef ESP8266
-        u8g2.setCursor(0, 25);
-        u8g2.print("MAC: ");
-        u8g2.print(WiFi.BSSIDstr(currentNetwork));
-      #else
-        uint8_t *bssid = WiFi.BSSID(currentNetwork);
-        char macStr[18];
-        sprintf(macStr, "%02X:%02X:%02X:%02X:%02X:%02X",
-                bssid[0], bssid[1], bssid[2],
-                bssid[3], bssid[4], bssid[5]);
-        u8g2.setCursor(0, 25);
-        u8g2.print("MAC:");
-        u8g2.print(macStr);
-      #endif
+#ifdef ESP8266
+      u8g2.setCursor(0, 25);
+      u8g2.print("MAC: ");
+      u8g2.print(WiFi.BSSIDstr(currentNetwork));
+#else
+      uint8_t *bssid = WiFi.BSSID(currentNetwork);
+      char macStr[18];
+      sprintf(macStr, "%02X:%02X:%02X:%02X:%02X:%02X",
+              bssid[0], bssid[1], bssid[2],
+              bssid[3], bssid[4], bssid[5]);
+      u8g2.setCursor(0, 25);
+      u8g2.print("MAC:");
+      u8g2.print(macStr);
+#endif
 
       u8g2.setCursor(0, 35);
       u8g2.print("RSSI: ");
@@ -1173,28 +1181,28 @@ void irtxF() {
 
 // === універсальна функція безпеки ===
 String getEncryptionType(int type) {
-  #ifdef ESP8266
-    switch (type) {
-      case ENC_TYPE_NONE: return "Open";
-      case ENC_TYPE_WEP: return "WEP";
-      case ENC_TYPE_TKIP: return "WPA/TKIP";
-      case ENC_TYPE_CCMP: return "WPA2/CCMP";
-      case ENC_TYPE_AUTO: return "Auto";
-      default: return "Unknown";
-    }
-  #else // ESP32
-    switch ((wifi_auth_mode_t)type) {
-      case WIFI_AUTH_OPEN: return "Open";
-      case WIFI_AUTH_WEP: return "WEP";
-      case WIFI_AUTH_WPA_PSK: return "WPA-PSK";
-      case WIFI_AUTH_WPA2_PSK: return "WPA2-PSK";
-      case WIFI_AUTH_WPA_WPA2_PSK: return "WPA/WPA2";
-      case WIFI_AUTH_WPA2_ENTERPRISE: return "WPA2-ENT";
-      case WIFI_AUTH_WPA3_PSK: return "WPA3-PSK";
-      case WIFI_AUTH_WPA2_WPA3_PSK: return "WPA2/WPA3";
-      default: return "Unknown";
-    }
-  #endif
+#ifdef ESP8266
+  switch (type) {
+    case ENC_TYPE_NONE: return "Open";
+    case ENC_TYPE_WEP: return "WEP";
+    case ENC_TYPE_TKIP: return "WPA/TKIP";
+    case ENC_TYPE_CCMP: return "WPA2/CCMP";
+    case ENC_TYPE_AUTO: return "Auto";
+    default: return "Unknown";
+  }
+#else // ESP32
+  switch ((wifi_auth_mode_t)type) {
+    case WIFI_AUTH_OPEN: return "Open";
+    case WIFI_AUTH_WEP: return "WEP";
+    case WIFI_AUTH_WPA_PSK: return "WPA-PSK";
+    case WIFI_AUTH_WPA2_PSK: return "WPA2-PSK";
+    case WIFI_AUTH_WPA_WPA2_PSK: return "WPA/WPA2";
+    case WIFI_AUTH_WPA2_ENTERPRISE: return "WPA2-ENT";
+    case WIFI_AUTH_WPA3_PSK: return "WPA3-PSK";
+    case WIFI_AUTH_WPA2_WPA3_PSK: return "WPA2/WPA3";
+    default: return "Unknown";
+  }
+#endif
 }
 
 NimBLEAdvertisementData getOAdvertisementData() {
@@ -1205,14 +1213,14 @@ NimBLEAdvertisementData getOAdvertisementData() {
   packet[i++] = 16;    // Packet Length
   packet[i++] = 0xFF;  // Manufacturer Specific
   packet[i++] = 0x4C;  // Apple Inc.
-  packet[i++] = 0x00;  
-  packet[i++] = 0x0F;  
-  packet[i++] = 0x05;  
-  packet[i++] = 0xC1;  
+  packet[i++] = 0x00;
+  packet[i++] = 0x0F;
+  packet[i++] = 0x05;
+  packet[i++] = 0xC1;
   const uint8_t types[] = { 0x27, 0x09, 0x02, 0x1e, 0x2b, 0x2d, 0x2f, 0x01, 0x06, 0x20, 0xc0 };
   packet[i++] = types[rand() % sizeof(types)];
   esp_fill_random(&packet[i], 3); // Authentication Tag
-  i += 3;   
+  i += 3;
   packet[i++] = 0x00;
   packet[i++] = 0x00;
   packet[i++] = 0x10;
@@ -1238,17 +1246,110 @@ void sourapple() {
   pAdvertising = pServer->getAdvertising();
 
   // Безкінечний цикл
-  while(true) {
+  while (true) {
     NimBLEAdvertisementData advertisementData = getOAdvertisementData();
     pAdvertising->setAdvertisementData(advertisementData);
     pAdvertising->start();
     delay(20);
     pAdvertising->stop();
     delay(40);
-   if (digitalRead(okpin) == oksig) {
+    if (digitalRead(okpin) == oksig) {
       pAdvertising->stop();  // зупинити рекламу
       delay(20);
-      return; // вихід з функції назад у setup()
+      return;
     }
   }
 }
+
+
+
+
+
+
+//void ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight) {
+//  unsigned long lastActivityTime = millis(); // Час останньої активності
+//  bool displayOn = true; // Стан дисплея
+//  while (true) {
+//
+//    u8g2.clearBuffer();
+//    u8g2.setFont(u8g2_font_t0_22b_tf); // Вибір шрифту
+//    while (true) {
+//      delay(20);
+//      char timeBuffer[6];  // Буфер для збереження відформатованого часу
+//      //    Serial.println(taskbar_show);
+//      // Малюємо фон, якщо передано бітмап
+//      if (backgroundBitmap != nullptr) {
+//        u8g2.drawXBMP(0, 0, bitmapWidth, bitmapHeight, backgroundBitmap);
+//      }
+//
+//
+//      // _disp.clearBuffer();            // Очищення буфера
+//      sprintf(timeBuffer, "%02d:%02d", clockLib.currentHours, clockLib.currentMinutes); // Форматуємо час у вигляді "HH:MM"
+//      u8g2.drawStr(ClockDispX, ClockDispY, timeBuffer);  // Виводимо час x:25, y:30
+//
+//      if (digitalRead(okpin) == oksig) {
+//        delay(1000);
+//        if (digitalRead(okpin) == oksig) {
+//          delay(1000); return;
+//        }
+//      }
+//
+//      u8g2.sendBuffer();
+//      delay(100);
+//
+//
+//      if (millis() - lastActivityTime > 6000 && displayOn) {
+//
+//        displayOn = false;
+//        while (displayOn == false) {
+//          clockLib.clearDisp();
+//          if (digitalRead(okpin) == oksig) {
+//            delay(200);
+//            if (digitalRead(okpin) == oksig) {
+//              if (ClockUpdateMillis == 1) {
+//                ClockUpdate();
+//              }
+//              delay(1000);
+//              lastActivityTime = millis();
+//              displayOn = true;
+//              /*return;*/  break;
+//            }
+//          }
+//          delay(1500);
+//        }
+//      }
+//    }
+//  }
+//}
+//
+//
+//
+//void ClockUpdate() {
+//
+//  //--Clock
+//  cur_milllis = millis();
+//  if (cur_milllis - last_tick >= 1000) {
+//    lsec = lsec + 1;
+//    if (lsec >= 60) {
+//      lmin = lmin + 1;
+//      lsec = 0;
+//    }
+//    if (lmin >= 60) {
+//      lhour = lhour + 1;
+//      lmin = 0;
+//    }
+//    if (lhour >= 24) {
+//      lhour = 0;
+//    }
+//    last_tick = cur_milllis;
+//  }
+//
+//  clockLib.currentHours = lhour;
+//  clockLib.currentMinutes = lmin;
+//}
+
+
+
+
+
+
