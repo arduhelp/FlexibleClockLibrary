@@ -60,10 +60,10 @@ const unsigned char FlexibleClockLibrary::remote_bitmap_remote [] PROGMEM = {
 
 FlexibleClockLibrary::FlexibleClockLibrary(U8G2& disp, uint8_t OKpin, uint8_t OKsig, uint8_t analogButton,
                                            const char* ssidConfig, const char* passwordConfig,
-                                           uint8_t IR_tx, uint8_t IR_rx, uint8_t mHz_tx, uint8_t buzzerPin)
+                                           uint8_t IR_tx, uint8_t IR_rx, uint8_t oscilospin, uint8_t buzzerPin)
     : _disp(disp), _OKpin(OKpin), _OKsig(OKsig), _analogButton(analogButton), _ssidConfig(ssidConfig), 
       _passwordConfig(passwordConfig), _IR_tx(IR_tx), _IR_rx(IR_rx), 
-      _mHz_tx(mHz_tx), _buzzerPin(buzzerPin), server(80) {
+      _oscilospin(oscilospin), _buzzerPin(buzzerPin), server(80) {
     // Ініціалізація змінних класу
 }
 
@@ -90,6 +90,7 @@ int FlexibleClockLibrary::autofliper = 1;
 //-------------------------------------
 //-------------begin-------------------
 //-------------------------------------
+int ClockUpdateMillis = 1;
 void FlexibleClockLibrary::begin() {
     pinMode(_OKpin, INPUT_PULLUP); // OK pin
     // attachInterrupt(digitalPinToInterrupt(_OKpin), handleOkInterrupt, FALLING);
@@ -111,8 +112,7 @@ void FlexibleClockLibrary::begin() {
     _disp.clearBuffer(); 
      _disp.setFont(u8g2_font_6x10_tf);
      _disp.drawStr(5, 54, "FlexibleClockLib"); 
-     _disp.drawStr(80, 64, "v1.1s10"); 
-     int ClockUpdateMillis = 1;
+     _disp.drawStr(80, 64, "v1.2s0"); 
      _disp.sendBuffer();
      delay(1000);
      if(digitalRead(_OKpin) == _OKsig) {
@@ -331,91 +331,84 @@ void FlexibleClockLibrary::clearDisp() {
 //----------clock-disp-----------------
 //-------------------------------------
 
-void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight){
-    unsigned long lastActivityTime = millis(); // Час останньої активності
-    bool displayOn = true; // Стан дисплея
-while(true){
+void FlexibleClockLibrary::ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight) {
+  
+  unsigned long lastActivityTime = millis();
+  bool displayOn = true;
 
- _disp.clearBuffer(); 
- _disp.setFont(u8g2_font_t0_22b_tf); // Вибір шрифту
-    while(true){
-      delay(20);
- char timeBuffer[6];  // Буфер для збереження відформатованого часу
-//    Serial.println(taskbar_show);
-      // Малюємо фон, якщо передано бітмап
+  while (true) {
+
+    ClockUpdate();
+
+    _disp.clearBuffer();
+    _disp.setFont(u8g2_font_t0_22b_tf);
+
     if (backgroundBitmap != nullptr) {
       _disp.drawXBMP(0, 0, bitmapWidth, bitmapHeight, backgroundBitmap);
     }
 
-   
-       // _disp.clearBuffer();            // Очищення буфера
-        sprintf(timeBuffer, "%02d:%02d", currentHours, currentMinutes); // Форматуємо час у вигляді "HH:MM"
-        _disp.drawStr(ClockDispX, ClockDispY, timeBuffer);  // Виводимо час x:25, y:30
+    char timeBuffer[6];
+    sprintf(timeBuffer, "%02d:%02d", currentHours, currentMinutes);
+    _disp.drawStr(ClockDispX, ClockDispY, timeBuffer);
+    _disp.sendBuffer();
 
-   if (digitalRead(_OKpin) == _OKsig) {
-      delay(1000); 
-      if (digitalRead(_OKpin) == _OKsig) { 
-      delay(1000); return; }}
-
-       _disp.sendBuffer(); 
-       delay(100);
-    
-    
-    if (millis() - lastActivityTime > 6000 && displayOn) {
-        
-        displayOn = false;
-        while(displayOn == false){
-            clearDisp();
-            if (digitalRead(_OKpin) == _OKsig) {
-                delay(200); 
-                if (digitalRead(_OKpin) == _OKsig) { 
-                    if (/*WiFi.status() != WL_CONNECTED &&*/ ClockUpdateMillis == 1) {
-                        ClockUpdate(); 
-                    }
-                    delay(1000);
-                     lastActivityTime = millis();
-                     displayOn = true;
-                      /*return;*/  break;  }}
-            delay(1500);
-        }
+    if (digitalRead(_OKpin) == _OKsig) {
+      delay(300);
+      lastActivityTime = millis(); // активність є
+      if (digitalRead(_OKpin) == _OKsig) return;
     }
 
-    
+    if (millis() - lastActivityTime > 6000 && displayOn) {
+      displayOn = false;
+      clearDisp();
+    }
+    if (!displayOn){
+      while(!displayOn){
+        delay(1500);
+        if (digitalRead(_OKpin) == _OKsig){ delay(200); if (digitalRead(_OKpin) == _OKsig){ delay(100); lastActivityTime = millis(); displayOn = true;}}
+      }
+    }
 
-
+    delay(50);
+  }
 }
 
-}}
+   
+       int UTC = 0; //your time zone (utc)
+//---ai code 50%---
+void FlexibleClockLibrary::ClockUpdate() {
 
-    int UTC = 0; //your time zone (utc)
+  unsigned long now = millis();
+  unsigned long elapsedSec = (now - last_tick) / 1000;
 
-void FlexibleClockLibrary::ClockUpdate(){
+  if (elapsedSec == 0) return;   // ще не минула секунда
 
-  //--Clock
-  cur_milllis = millis();
-  if(cur_milllis - last_tick >= 1000){
-    lsec = lsec + 1;
-    if(lsec >= 60){
-      lmin = lmin +1;
-      lsec = 0;
-    }
-    if(lmin >= 60){
-      lhour = lhour +1;
-      lmin = 0;
-    }
-    if(lhour >= 24){
-      lhour = 0;
-    }
-    last_tick = cur_milllis;
+  last_tick += elapsedSec * 1000;  // зсуваємо опорну точку
+
+  // додаємо ВСІ секунди
+  lsec += elapsedSec;
+
+  // нормалізація
+  if (lsec >= 60) {
+    lmin += lsec / 60;
+    lsec %= 60;
   }
 
-  currentHours = lhour;
+  if (lmin >= 60) {
+    lhour += lmin / 60;
+    lmin %= 60;
+  }
+
+  if (lhour >= 24) {
+    lhour %= 24;
+  }
+
+  // копія для відображення
+  currentHours   = lhour;
   currentMinutes = lmin;
 }
-
-
-
-
+//---end ai code 50%---
+   
 //-------------------------------------
 //--------drawLines--------------------
 //-------------------------------------
@@ -587,10 +580,42 @@ void FlexibleClockLibrary::ir_tx() {
 }
 
 //-------------------------------------
-//---------------MHz-------------------
+//------------osciloscope--------------
 //-------------------------------------
-void FlexibleClockLibrary::mhz_tx() {
-    // MHz transmit logic
+void FlexibleClockLibrary::osciloscope() {
+  _disp.clearBuffer();
+  _disp.sendBuffer();
+  delay(100);
+  uint8_t x = 0;
+  int readdata = 0;
+  int reade = 0;
+  int minimum = 4096;
+  int maximum = 0;
+
+  pinMode(_oscilospin, INPUT);
+  while(true){
+    reade = analogRead(_oscilospin);
+    readdata = map(reade,maximum,minimum,1,63); 
+    if (reade < minimum) minimum = reade;
+    if (reade > maximum) maximum = reade;
+    if(minimum < maximum - 500){ minimum = maximum - 500;}
+    _disp.drawPixel(x, readdata); 
+    _disp.sendBuffer();
+    x += 1;
+    if(x >= 127){x = 0;
+       _disp.clearBuffer();
+       _disp.sendBuffer();
+     }
+    delay(2);
+     if (digitalRead(_OKpin) == _OKsig) {
+       _disp.clearBuffer();
+       _disp.sendBuffer();
+        minimum = 4096;
+        maximum = 0;
+       delay(100);
+       return;
+     }
+    }
 }
 
 
