@@ -268,6 +268,7 @@ void setup() {
   clockLib.currentMinutes = 58;
   clockLib.lhour = 18;
   clockLib.lmin = 58;
+  clockLib.setClock();
   clockLib.UTC = 1;
   clockLib.currentHours += clockLib.UTC;
   clockLib.ClockDisp(clockposX, clockposY,/*wallpaper_bitmap_bezmeteznist*/ wallpaper_bitmap_gear, 128, 64);
@@ -534,7 +535,9 @@ void pmenusettings() { // pmenusettings
         u8g2.drawStr(30, 22, SettingsMenuItems[parampam - 1]);
         u8g2.drawStr(30, 40, SettingsMenuItems[parampam]);
         u8g2.drawStr(30, 60, SettingsMenuItems[parampam + 1]);
-        if (digitalRead(okpin) == oksig) {}
+        if (digitalRead(okpin) == oksig) {
+            clockLib.setClock(); delay(100);
+          }
         //u8g2.sendBuffer();
         break;
 
