@@ -56,6 +56,7 @@ public:
     //clock
     void ClockDisp(int ClockDispX, int ClockDispY, const uint8_t* backgroundBitmap, int bitmapWidth, int bitmapHeight);
     void ClockUpdate();
+    void setClock();
 
     static const unsigned char _err_bitmap_err[];
     static const unsigned char _err_bitmap_noerr[];
