@@ -409,6 +409,30 @@ void FlexibleClockLibrary::ClockUpdate() {
 }
 //---end ai code 50%---
    
+
+void FlexibleClockLibrary::setClock(){
+  byte hourmin = 0;
+  unsigned long previousMillis = 0;
+  _disp.setFont(u8g2_font_t0_22b_tf);
+  clearDisp();
+  delay(400);
+  while(true){
+   char timeBuffer[6];
+   sprintf(timeBuffer, "%02d:%02d", currentHours, currentMinutes);
+   _disp.drawStr(35, 40, timeBuffer);
+
+  if (digitalRead(_OKpin) == _OKsig){if(!hourmin){lhour = currentHours; hourmin = 1; delay(1000); lhour--;}else{lmin = currentMinutes; delay(1000); return;}}
+  if (millis() - previousMillis >= 700) {
+    previousMillis = millis(); // Reset the timer
+    if(!hourmin){if(currentHours <= 23){currentHours++;}else{currentHours = 0;}}
+    if(hourmin){if(currentMinutes <= 59){currentMinutes++;}else{currentMinutes = 0;}}
+    _disp.sendBuffer();
+  }
+    
+}
+}
+
+
 //-------------------------------------
 //--------drawLines--------------------
 //-------------------------------------
